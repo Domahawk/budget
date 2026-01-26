@@ -1,0 +1,4 @@
+*/models
+*/vendor
+*/node_modules
+.env
