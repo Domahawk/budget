@@ -1,144 +1,148 @@
 <script setup lang="ts">
-import { reactive, watch } from 'vue'
-import { Form } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import type { ReceiptItemRow } from '@/types/receiptItemRow'
-import { router } from '@inertiajs/vue3'
+import { ref, watch } from 'vue';
+import { Input } from '@/components/ui/input';
+import { useReceiptValidation } from '@/composables/useReceiptValidation';
+import api from '@/lib/api';
+import type { Receipt } from '@/types/receipt';
+import type { ReceiptItemRow } from '@/types/receiptItemRow';
+import type { UiRow } from '@/types/uiRow';
 
-/* ------------------------------------------
-   Props / Emits
------------------------------------------- */
 const props = defineProps<{
-    rows: ReceiptItemRow[]
-    open: boolean
-}>()
+    receipt: Receipt;
+    open: boolean;
+    text: string
+}>();
 
 const emit = defineEmits<{
-    (e: 'close'): void
-    (e: 'save', rows: ReceiptItemRow[]): void
-}>()
+    (e: 'close'): void;
+    (e: 'saved'): void;
+}>();
 
-/* ------------------------------------------
-   Editable rows (local copy)
------------------------------------------- */
-const formRows = reactive<ReceiptItemRow[]>([])
+const rows = ref<ReceiptItemRow[]>([]);
+const uiRows = ref<UiRow[]>([]);
+const validation = useReceiptValidation(rows)
+const loading = ref(false);
 
-watch(
-    () => props.rows,
-    rows => {
-        formRows.splice(0, formRows.length, ...rows.map(r => ({ ...r })))
-    },
-    { immediate: true }
-)
-
-/* ------------------------------------------
-   UI-only state (search + create)
------------------------------------------- */
-type UiRow = {
-    search: string
-    suggestions: any[]
-    creating: boolean
-    newItemName: string
-    debounce?: number
+const itemFind = (itemId: number | null | undefined, itemName: string | null) => {
+    return itemId ? `Found Item ID: ${itemId} Name: ${itemName}` : "No item found, search for an Item or create a new Item";
 }
 
-const uiRows = reactive<UiRow[]>([])
+async function parse(text: string) {
+    try {
+        const { data } = await api.post(`/receipts/parse`, { text });
 
-watch(
-    () => props.rows,
-    rows => {
-        uiRows.splice(
-            0,
-            uiRows.length,
-            ...rows.map(row => ({
-                search: row.name ?? '',
-                suggestions: [],
-                creating: false,
-                newItemName: row.raw_name ?? '',
-                debounce: undefined,
-            }))
-        )
-    },
-    { immediate: true }
-)
+        if (!Array.isArray(data)) return;
 
-/* ------------------------------------------
-   Search existing items
------------------------------------------- */
+        rows.value = data.map((row: any, index: number) => ({
+            raw_name: row.name,
+            qty: row.qty,
+            name: row.item_name ?? row.name,
+            item_id: row.item_id ?? null,
+            unit_price: row.unit_price,
+            total_price: row.total_price,
+            position: index + 1,
+        }));
+
+        uiRows.value = data.map((row: any) => ({
+            search: row.name ?? '',
+            suggestions: [],
+            creating: false,
+            newItemName: row.name ?? '',
+            debounce: undefined,
+        }));
+    } catch (e) {
+        console.log(e)
+    }
+}
+
 function onSearch(uiRow: UiRow, value: string) {
-    uiRow.search = value
+    uiRow.search = value;
 
     if (uiRow.debounce) {
-        clearTimeout(uiRow.debounce)
+        clearTimeout(uiRow.debounce);
     }
 
     if (!value) {
-        uiRow.suggestions = []
-        return
+        uiRow.suggestions = [];
+        return;
     }
 
     uiRow.debounce = window.setTimeout(async () => {
-        const res = await fetch(`/items?search=${encodeURIComponent(value)}`, {
-            headers: { Accept: 'application/json' },
-        })
-
-        uiRow.suggestions = await res.json()
-    }, 300)
+        const res = await api.get(`/items?search=${encodeURIComponent(value)}`);
+        uiRow.suggestions = res.data;
+    }, 300);
 }
 
 function selectItem(index: number, uiRow: UiRow, item: any) {
-    formRows[index].name = item.name
-    formRows[index].item_id = item.id
-
-    uiRow.search = item.name
-    uiRow.suggestions = []
-    uiRow.creating = false
+    rows.value[index].name = item.name;
+    rows.value[index].item_id = item.id;
+    uiRow.search = item.name;
+    uiRow.suggestions = [];
+    uiRow.creating = false;
 }
 
-/* ------------------------------------------
-   Create new item
------------------------------------------- */
 async function createItem(index: number, uiRow: UiRow) {
-    if (!uiRow.newItemName) return
+    if (!uiRow.newItemName) return;
 
-    const token = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content
+    const { data: item } = await api.post('/items/create', {
+        name: uiRow.newItemName,
+        raw_name: rows.value[index].raw_name,
+    });
 
-    const res = await fetch('/items', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-            ...(token ? { 'X-CSRF-TOKEN': token } : {}),
-        },
-        body: JSON.stringify({
-            name: uiRow.newItemName,
-            raw_name: formRows[index].raw_name,
-        }),
-    })
+    rows.value[index].name = item.name;
+    rows.value[index].item_id = item.id;
+    uiRow.newItemName = '';
+    uiRow.creating = false;
+    uiRow.suggestions = [];
+}
 
-    if (!res.ok) {
-        // optional: show errors
-        return
+async function onSubmit() {
+    if (validation.validate()) return;
+
+    loading.value = true;
+
+    try {
+        await api.post(`/receipts/${props.receipt.id}/items`, {
+            items: rows.value.map((r) => ({
+                raw_name: r.raw_name,
+                item_id: r.item_id,
+                quantity: r.qty,
+                unit_price: r.unit_price,
+                total_price: r.total_price,
+                position: r.position,
+            })),
+        });
+
+        emit('saved');
+        emit('close');
+    } finally {
+        loading.value = false;
     }
-
-    const item = await res.json()
-
-    formRows[index].name = item.name
-    formRows[index].item_id = item.id
-
-    uiRow.search = item.name
-    uiRow.newItemName = ''
-    uiRow.creating = false
-    uiRow.suggestions = []
 }
 
-/* ------------------------------------------
-   Submit
------------------------------------------- */
-function onSubmit() {
-    emit('save', formRows)
-}
+watch(
+    () => props.open,
+    async (open) => {
+        if (!open) {
+            rows.value = [];
+            uiRows.value = [];
+            validation.errors.value = []
+        }
+
+        await parse(props.text);
+    },
+);
+
+watch(
+    () => rows.value,
+    () => {
+        if (!props.open) return
+        validation.validate()
+    },
+    {
+        deep: true
+    }
+)
 </script>
 
 <template>
@@ -146,37 +150,51 @@ function onSubmit() {
         v-if="open"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     >
-        <div class="max-h-[90vh] w-full max-w-5xl overflow-auto rounded bg-black p-6">
+        <div
+            class="max-h-[90vh] w-full max-w-5xl overflow-auto rounded bg-black p-6"
+        >
             <h2 class="mb-4 text-xl font-semibold">Receipt items</h2>
 
-            <Form @submit.prevent="onSubmit">
+            <form @submit.prevent="onSubmit">
                 <div
-                    v-for="(row, index) in formRows"
+                    v-for="(row, index) in rows"
                     :key="index"
                     class="mb-4 flex flex-col border-b pb-4"
                 >
-                    <!-- raw OCR line -->
                     <h3 class="mb-2 text-sm text-gray-400">
-                        {{ row.name }}
+                        {{ itemFind(row.item_id, row.name) }}
                     </h3>
 
                     <div class="grid grid-cols-4 gap-2">
-                        <!-- qty -->
-                        <Input
-                            v-model="row.qty"
-                            type="text"
-                            placeholder="Qty"
-                        />
+                        <div>
+                            <Input
+                                v-model="row.qty"
+                                placeholder="Qty"
+                                :class="validation.inputClass(index, 'qty')"
+                            />
+                            <p
+                                v-if="validation.errors.value[index]?.qty"
+                                class="text-xs text-red-500"
+                            >
+                                {{ validation.errors.value[index].qty }}
+                            </p>
+                        </div>
 
-                        <!-- search / create -->
                         <div class="relative">
                             <Input
                                 :model-value="uiRows[index]?.search"
-                                @input="e => onSearch(uiRows[index], (e.target as HTMLInputElement).value)"
+                                @input="
+                                    (e) =>
+                                        onSearch(
+                                            uiRows[index],
+                                            (e.target as HTMLInputElement)
+                                                .value,
+                                        )
+                                "
                                 placeholder="Search item…"
+                                :class="validation.inputClass(index, 'search')"
                             />
 
-                            <!-- suggestions -->
                             <div
                                 v-if="uiRows[index]?.suggestions.length"
                                 class="absolute z-10 w-full rounded border bg-black"
@@ -185,40 +203,60 @@ function onSubmit() {
                                     v-for="item in uiRows[index].suggestions"
                                     :key="item.id"
                                     class="cursor-pointer px-2 py-1 hover:bg-gray-100"
-                                    @click="selectItem(index, uiRows[index], item)"
+                                    @click="
+                                        selectItem(index, uiRows[index], item)
+                                    "
                                 >
                                     {{ item.name }}
                                 </div>
                             </div>
+
+                            <p
+                                v-if="validation.errors.value[index]?.item"
+                                class="text-xs text-red-500"
+                            >
+                                {{ validation.errors.value[index].item }}
+                            </p>
+
                             <div
-                                class="cursor-pointer px-2 py-1 text-sm text-blue-500 hover:bg-gray-100"
-                                @click="uiRows[index].creating = true"
                                 v-if="!row.item_id"
+                                class="cursor-pointer px-2 py-1 text-sm text-blue-500"
+                                @click="uiRows[index].creating = true"
                             >
                                 + Add “{{ uiRows[index].search }}”
+
                             </div>
                         </div>
+                        <div>
+                            <Input
+                                v-model="row.unit_price"
+                                placeholder="Unit price"
+                                :class="validation.inputClass(index, 'unit')"
+                            />
+                            <p
+                                v-if="validation.errors.value[index]?.unit_price"
+                                class="text-xs text-red-500"
+                            >
+                                {{ validation.errors.value[index].unit_price }}
+                            </p>
+                        </div>
 
-                        <!-- unit price -->
-                        <Input
-                            v-model="row.unit_price"
-                            type="text"
-                            placeholder="Unit price"
-                        />
-
-                        <!-- total -->
-                        <Input
-                            v-model="row.total_price"
-                            type="text"
-                            placeholder="Total"
-                        />
+                        <div>
+                            <Input
+                                v-model="row.total_price"
+                                placeholder="Total"
+                                :class="validation.inputClass(index, 'total')"
+                            />
+                            <p
+                                v-if="validation.errors.value[index]?.total_price"
+                                class="text-xs text-red-500"
+                            >
+                                {{ validation.errors.value[index].total_price }}
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- create new item -->
-                    <div
-                        v-if="uiRows[index].creating"
-                        class="mt-2 flex gap-2"
-                    >
+                    <div v-if="uiRows[index]?.creating" class="mt-2 flex gap-2">
                         <Input
                             v-model="uiRows[index].newItemName"
                             placeholder="New item name"
@@ -244,12 +282,14 @@ function onSubmit() {
 
                     <button
                         type="submit"
-                        class="rounded bg-white px-4 py-2 text-black"
+                        class="rounded px-4 py-2 text-black"
+                        :class="[validation.disabledSave.value ? 'bg-gray-600' : 'bg-green-600']"
+                        :disabled="validation.disabledSave.value"
                     >
                         Save receipt
                     </button>
                 </div>
-            </Form>
+            </form>
         </div>
     </div>
 </template>

@@ -137,6 +137,7 @@
       <path value="$PROJECT_DIR$/app/vendor/sebastian/code-unit-reverse-lookup" />
       <path value="$PROJECT_DIR$/app/vendor/league/flysystem-local" />
       <path value="$PROJECT_DIR$/app/vendor/_laravel_idea" />
+      <path value="$PROJECT_DIR$/app/vendor/laravel/sanctum" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.5">

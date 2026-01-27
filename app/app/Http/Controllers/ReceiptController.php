@@ -6,32 +6,27 @@ use App\Jobs\ProcessReceiptOcr;
 use App\Models\Receipt;
 use App\Models\Store;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Http\JsonResponse;
 
 class ReceiptController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
-        return Inertia::render('receipts/Index', [
-            'receipts' => Receipt::withSum('items', 'total_price')->get()->load('store'),
-        ]);
+        $receipts = Receipt::withSum('items', 'total_price')
+            ->with('store')
+            ->get();
+
+        return response()->json($receipts);
     }
 
-    public function show(Receipt $receipt)
+    public function show(Receipt $receipt): JsonResponse
     {
-        return Inertia::render('receipts/Show', [
-            'receipt' => $receipt->load(['items.item']),
-        ]);
+        return response()->json(
+            $receipt->load(['items.item'])
+        );
     }
 
-    public function create()
-    {
-        return Inertia::render('receipts/Create', [
-            'stores' => Store::orderBy('name')->get(['id', 'name']),
-        ]);
-    }
-
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
             'image' => ['required', 'image'],
@@ -48,6 +43,8 @@ class ReceiptController extends Controller
 
         ProcessReceiptOcr::dispatch($receipt->id);
 
-        return redirect()->route('receipts.show', $receipt);
+        return response()->json([
+            'receipt' => $receipt,
+        ], 201);
     }
 }

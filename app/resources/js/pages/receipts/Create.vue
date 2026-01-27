@@ -1,38 +1,82 @@
 <script setup lang="ts">
-import { useForm } from '@inertiajs/vue3'
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import api from '@/lib/api'
+import type { Store } from '@/types/store';
 
-defineProps<{
-    stores: {
-        id: number
-        name: string
-    }[]
-}>()
+const router = useRouter()
+const stores = ref<Store[]>([])
+const image = ref<File | null>(null)
+const storeId = ref<number | null>(null)
+const loading = ref(false)
+const errors = reactive<{
+    image?: string
+    store_id?: string
+}>({})
 
-const form = useForm<{
-    image: File | null
-    store_id: number | null
-}>({
-    image: null,
-    store_id: null,
-})
-
+/* ------------------------------------------
+   Handlers
+------------------------------------------ */
 function handleFileChange(e: Event) {
-    const input = e.target as HTMLInputElement | null
-    form.image = input && input.files && input.files[0] ? input.files[0] : null
+    const input = e.target as HTMLInputElement
+    image.value = input.files?.[0] ?? null
 }
 
-function submit(): void {
-    if (!form.image || !form.store_id) return
-
-    form.post('/receipts', {
-        forceFormData: true,
-    })
+const fetchStores = async () => {
+    try {
+        const res = await api.get('/stores');
+        console.log(res)
+        stores.value = res.data.stores
+    } catch (e) {
+        console.log(e)
+    }
 }
+
+async function submit() {
+    errors.image = undefined
+    errors.store_id = undefined
+
+    if (!image.value) {
+        errors.image = 'Image is required'
+        return
+    }
+
+    if (!storeId.value) {
+        errors.store_id = 'Store is required'
+        return
+    }
+
+    const formData = new FormData()
+    formData.append('image', image.value)
+    formData.append('store_id', String(storeId.value))
+
+    loading.value = true
+
+    try {
+        const { data } = await api.post('/receipts/create', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        })
+
+        await router.push(`/receipts/${data.receipt.id}`)
+    } catch (err: any) {
+        if (err.response?.status === 422) {
+            const apiErrors = err.response.data.errors ?? {}
+
+            errors.image = apiErrors.image?.[0]
+            errors.store_id = apiErrors.store_id?.[0]
+        }
+    } finally {
+        loading.value = false
+    }
+}
+onMounted(fetchStores)
 </script>
 
 <template>
     <div class="mx-auto max-w-2xl py-12">
-        <h1 class="mb-4 text-3xl font-bold">Budget Receipt Scanner</h1>
+        <h1 class="mb-4 text-3xl font-bold">
+            Budget Receipt Scanner
+        </h1>
 
         <p class="mb-8 text-gray-600">
             Upload a receipt image to start processing.
@@ -40,29 +84,31 @@ function submit(): void {
 
         <div class="rounded-lg border p-6">
             <form @submit.prevent="submit" class="space-y-4">
-                <!-- Store select -->
                 <div>
                     <label class="mb-2 block font-medium">
                         Store
                     </label>
 
                     <select
-                        v-model="form.store_id"
+                        v-model="storeId"
                         class="block w-full rounded border p-2 bg-black"
                     >
-                        <option value="" disabled>Select store</option>
+                        <option value="" disabled>
+                            Select store
+                        </option>
                         <option
                             v-for="store in stores"
                             :key="store.id"
                             :value="store.id"
+                            class="text-white"
                         >
                             {{ store.name }}
                         </option>
                     </select>
 
-                    <div v-if="form.errors.store_id" class="text-sm text-red-600">
-                        {{ form.errors.store_id }}
-                    </div>
+                    <p v-if="errors.store_id" class="text-sm text-red-600">
+                        {{ errors.store_id }}
+                    </p>
                 </div>
 
                 <!-- Image upload -->
@@ -73,22 +119,22 @@ function submit(): void {
 
                     <input
                         type="file"
-                        name="image"
                         accept="image/*"
-                        class="mb-2 block w-full border-2 border-amber-600 rounded-2xl"
+                        class="mb-2 block w-full rounded-2xl border-2 border-amber-600"
                         @change="handleFileChange"
                     />
 
-                    <div v-if="form.errors.image" class="text-sm text-red-600">
-                        {{ form.errors.image }}
-                    </div>
+                    <p v-if="errors.image" class="text-sm text-red-600">
+                        {{ errors.image }}
+                    </p>
                 </div>
+
                 <button
                     type="submit"
                     class="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-                    :disabled="form.processing || !form.image || !form.store_id"
+                    :disabled="loading || !image || !storeId"
                 >
-                    Upload
+                    {{ loading ? 'Uploading…' : 'Upload' }}
                 </button>
             </form>
         </div>

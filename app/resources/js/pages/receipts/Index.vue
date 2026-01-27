@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { useRouter, RouterLink } from 'vue-router'
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card';
+} from '@/components/ui/card'
 import {
     Table,
     TableBody,
@@ -13,23 +15,40 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from '@/components/ui/table';
-import type { Store } from '@/types/store';
+} from '@/components/ui/table'
+import api from '@/lib/api'
+import type { Store } from '@/types/store'
 
-defineProps<{
-    receipts: {
-        id: number;
-        image_path: string;
-        created_at: string;
-        store: Store;
-        items_sum_total_price: number;
-        status: string;
-    }[];
-}>();
+type Receipt = {
+    id: number
+    image_path: string
+    created_at: string
+    store: Store
+    items_sum_total_price: number
+    status: string
+}
+
+const router = useRouter()
+
+const receipts = ref<Receipt[]>([])
+const loading = ref(true)
+
+async function fetchReceipts() {
+    try {
+        const { data } = await api.get<Receipt[]>('/receipts')
+        receipts.value = data
+    } catch (error) {
+        console.error('Failed to load receipts', error)
+    } finally {
+        loading.value = false
+    }
+}
 
 function goToReceipt(id: number) {
-    window.location.href = `/receipts/${id}`;
+    router.push(`/receipts/${id}`)
 }
+
+onMounted(fetchReceipts)
 </script>
 
 <template>
@@ -41,16 +60,23 @@ function goToReceipt(id: number) {
                     <CardDescription>All uploaded receipts</CardDescription>
                 </div>
 
-                <a
-                    href="/receipts/new"
+                <RouterLink
+                    to="/receipts/new"
                     class="rounded bg-black px-4 py-2 text-sm text-white"
                 >
                     New receipt
-                </a>
+                </RouterLink>
             </CardHeader>
 
             <CardContent>
-                <div v-if="receipts.length === 0" class="text-sm text-gray-500">
+                <div v-if="loading" class="text-sm text-gray-500">
+                    Loading…
+                </div>
+
+                <div
+                    v-else-if="receipts.length === 0"
+                    class="text-sm text-gray-500"
+                >
                     No receipts yet.
                 </div>
 
@@ -86,22 +112,17 @@ function goToReceipt(id: number) {
                             </TableCell>
 
                             <TableCell>
-                                {{
-                                    new Date(
-                                        receipt.created_at,
-                                    ).toLocaleString()
-                                }}
+                                {{ new Date(receipt.created_at).toLocaleString() }}
                             </TableCell>
 
-                            <!-- Placeholder store -->
                             <TableCell class="text-muted-foreground">
                                 {{ receipt.store.name }}
                             </TableCell>
 
-                            <!-- Placeholder total -->
                             <TableCell class="text-right font-medium">
                                 {{ receipt.items_sum_total_price }}
                             </TableCell>
+
                             <TableCell class="text-right font-medium">
                                 {{ receipt.status }}
                             </TableCell>

@@ -1,7 +1,5 @@
-export interface Item {
-    id: string
-    name: string
-}
+import type { Item } from "./item";
+
 export interface ReceiptItem {
     id: string;
     quantity: number;

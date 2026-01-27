@@ -14,51 +14,31 @@ class ReceiptItemController extends Controller
     {
         $data = $request->validate([
             'items' => ['required', 'array'],
-            'items.*.raw_name' => ['nullable', 'string'],
-            'items.*.item_id' => ['nullable', 'exists:items,id'],
-            'items.*.quantity' => ['nullable', 'numeric'],
-            'items.*.unit_price' => ['nullable', 'numeric'],
-            'items.*.total_price' => ['nullable', 'numeric'],
-            'items.*.position' => ['nullable', 'integer'],
+            'items.*.raw_name' => ['required', 'string'],
+            'items.*.item_id' => ['required', 'exists:items,id'],
+            'items.*.quantity' => ['required', 'numeric'],
+            'items.*.unit_price' => ['required', 'numeric'],
+            'items.*.total_price' => ['required', 'numeric'],
+            'items.*.position' => ['required', 'integer'],
         ]);
 
-        // Replace mode: clear existing items
         $receipt->items()->delete();
 
         foreach ($data['items'] as $item) {
             $receiptItem = $receipt->items()->create([
-                'item_id'     => $item['item_id'] ?? null,
-                'raw_name'    => $item['raw_name'] ?? null,
-                'quantity'    => $item['quantity'] ?? null,
-                'unit_price'  => $item['unit_price'] ?? null,
-                'total_price' => $item['total_price'] ?? null,
-                'position'    => $item['position'] ?? null,
+                'item_id'     => $item['item_id'],
+                'raw_name'    => $item['raw_name'],
+                'quantity'    => $item['quantity'],
+                'unit_price'  => $item['unit_price'],
+                'total_price' => $item['total_price'],
+                'position'    => $item['position'],
             ]);
-
-            // Alias auto-learning (only after user confirmation)
-            if (!empty($item['raw_name']) && !empty($item['item_id'])) {
-                ItemAlias::firstOrCreate([
-                    'item_id' => $item['item_id'],
-                ], [
-                    'alias'  => $item['raw_name'],
-                    'source' => 'ocr',
-                ]);
-            }
         }
 
         $receipt->update([
             'status' => 'confirmed',
         ]);
 
-        return to_route('receipts.show', $receipt);
-    }
-
-    private function normalize(string $value): string
-    {
-        $value = mb_strtolower($value);
-        $value = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $value);
-        $value = preg_replace('/\s+/', ' ', $value);
-
-        return trim($value);
+        return response()->json($receipt, 201);
     }
 }

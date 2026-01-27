@@ -2,7 +2,9 @@
 <project version="4">
   <component name="InertiaPackage">
     <option name="directoryPaths">
-      <list />
+      <list>
+        <option value="resources/js/pages/" />
+      </list>
     </option>
   </component>
   <component name="LaravelIdeaMainSettings">

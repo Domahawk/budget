@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <div class="mx-auto min-w-full py-12">
+    <div class="mx-auto min-w-full py-12 bg-pink-300">
       <h1 class="mb-4 text-3xl font-bold">
         Budget Receipt Scanner
       </h1>

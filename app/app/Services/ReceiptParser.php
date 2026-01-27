@@ -2,26 +2,21 @@
 namespace App\Services;
 
 use App\Models\Item;
-use App\Models\ItemAlias;
-use Illuminate\Support\Collection;
 
 class ReceiptParser
 {
     /**
      * @param  string  $text
-     * @param  Collection  $schemas  // ordered StoreSchema collection
      * @return array
      */
-    public function parse(string $text, Collection $schemas): array
+    public function parse(string $text): array
     {
         $lines = preg_split('/\R/', $text);
-
-
 
         return collect($lines)
             ->map(fn($line) => trim($line))
             ->filter(fn($line) => $line !== '')
-            ->map(fn($line) => $this->parseLine($line, $schemas))
+            ->map(fn($line) => $this->parseLine($line))
             ->values()
             ->all();
     }
@@ -29,14 +24,18 @@ class ReceiptParser
     /**
      * Parse a single OCR line using positional schema.
      */
-    private function parseLine(string $line, Collection $schemas): array
+    private function parseLine(string $line): array
     {
         $tokens = explode(';', $line);
+        $name = $tokens[0] ?? '';
+        $qty = $tokens[1] ?? '';
+        $unit = $tokens[2] ?? '';
+        $total = $tokens[3] ?? '';
         $result = [
-            'name' => trim($tokens[0]),
-            'qty' => (float) str_replace(',', '.', $tokens[1]),
-            'unit_price' => (float) str_replace(',', '.', $tokens[2]),
-            'total_price' => (float) str_replace(',', '.', $tokens[3]),
+            'name' => trim($name),
+            'qty' => (float) str_replace(',', '.', trim($qty)),
+            'unit_price' => (float) str_replace(',', '.', trim($unit)),
+            'total_price' => (float) str_replace(',', '.', trim($total)),
         ];
 
         /** @var Item | null $alias*/

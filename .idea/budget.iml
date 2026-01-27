@@ -33,6 +33,7 @@
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/pint" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/prompts" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/sail" />
+      <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/sanctum" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/serializable-closure" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/tinker" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/wayfinder" />
