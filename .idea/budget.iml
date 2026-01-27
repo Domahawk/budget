@@ -27,8 +27,6 @@
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/guzzlehttp/psr7" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/guzzlehttp/uri-template" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/hamcrest/hamcrest-php" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/inertiajs/inertia-laravel" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/fortify" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/framework" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/pint" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/prompts" />
@@ -36,7 +34,6 @@
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/sanctum" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/serializable-closure" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/tinker" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/laravel/wayfinder" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/league/commonmark" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/league/config" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/league/flysystem" />
@@ -53,18 +50,15 @@
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/nikic/php-parser" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/nunomaduro/collision" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/nunomaduro/termwind" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/paragonie/constant_time_encoding" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phar-io/manifest" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phar-io/version" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpoption/phpoption" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpstan/phpdoc-parser" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/php-code-coverage" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/php-file-iterator" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/php-invoker" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/php-text-template" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/php-timer" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/phpunit/phpunit" />
-      <excludeFolder url="file://$MODULE_DIR$/app/vendor/pragmarx/google2fa" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/psr/clock" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/psr/container" />
       <excludeFolder url="file://$MODULE_DIR$/app/vendor/psr/event-dispatcher" />

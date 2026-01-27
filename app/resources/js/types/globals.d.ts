@@ -12,15 +12,3 @@ declare module 'vite/client' {
         readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
     }
 }
-
-declare module '@inertiajs/core' {
-    interface PageProps extends InertiaPageProps, AppPageProps {}
-}
-
-declare module 'vue' {
-    interface ComponentCustomProperties {
-        $inertia: typeof Router;
-        $page: Page;
-        $headManager: ReturnType<typeof createHeadManager>;
-    }
-}
