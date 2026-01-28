@@ -1,4 +1,9 @@
+export interface ItemAlias {
+	item_id: number;
+	alias: string;
+}
 export interface Item {
-    id: string
-    name: string
+	id: number;
+	name: string;
+	aliases: ItemAlias[];
 }

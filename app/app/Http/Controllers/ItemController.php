@@ -13,9 +13,9 @@ class ItemController extends Controller
 
         return Item::query()
             ->when($search !== '', function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
-            })
-            ->orderBy('name')
+                $q->where('name', 'like', '%'.$search.'%');
+                $q->with('aliases')->limit(1);
+            })->orderBy('name')
             ->limit(10)
             ->get(['id', 'name']);
     }

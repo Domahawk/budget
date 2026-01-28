@@ -22,7 +22,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <div class="w-full p-10">
+    <div class="w-full">
         <Card class="w-full">
             <CardHeader>
                 <CardTitle>Receipt Items</CardTitle>

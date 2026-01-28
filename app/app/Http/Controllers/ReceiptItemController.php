@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ItemAlias;
 use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class ReceiptItemController extends Controller
 {
@@ -20,21 +18,47 @@ class ReceiptItemController extends Controller
             'items.*.unit_price' => ['required', 'numeric'],
             'items.*.total_price' => ['required', 'numeric'],
             'items.*.position' => ['required', 'integer'],
+            'items.*.id' => ['integer'],
         ]);
 
-        $receipt->items()->delete();
+        $itemIds = $receipt->items->mapWithKeys(function ($item) {
+            return [$item->id => $item];
+        });
+
+        $newItems = [];
 
         foreach ($data['items'] as $item) {
-            $receiptItem = $receipt->items()->create([
-                'item_id'     => $item['item_id'],
-                'raw_name'    => $item['raw_name'],
-                'quantity'    => $item['quantity'],
-                'unit_price'  => $item['unit_price'],
+            $receiptItem = new ReceiptItem([
+                'item_id' => $item['item_id'],
+                'raw_name' => $item['raw_name'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
                 'total_price' => $item['total_price'],
-                'position'    => $item['position'],
+                'position' => $item['position'],
             ]);
+
+            if (!isset($item['id'])) {
+                $newItems[] = $receiptItem;
+                continue;
+            }
+
+            $hasKey = $itemIds->has($item['id']);
+
+            if ($hasKey) {
+                $itemIds[$item['id']]->update($item);
+                $itemIds->forget($item['id']);
+            }
+
+            if (!$hasKey) {
+                $newItems[] = $receiptItem;
+            }
         }
 
+        foreach ($itemIds as $item) {
+            $item->delete();
+        }
+
+        $receipt->items()->saveMany($newItems);
         $receipt->update([
             'status' => 'confirmed',
         ]);
