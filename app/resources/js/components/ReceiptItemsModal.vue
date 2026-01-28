@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, watchEffect } from 'vue';
 import { Input } from '@/components/ui/input';
 import { useReceiptValidation } from '@/composables/useReceiptValidation';
 import api from '@/lib/api';
@@ -10,7 +10,8 @@ import type { UiRow } from '@/types/uiRow';
 const props = defineProps<{
     receipt: Receipt;
     open: boolean;
-    text: string
+    parentRows: ReceiptItemRow[];
+    parentUiRows: UiRow[];
 }>();
 
 const emit = defineEmits<{
@@ -20,40 +21,22 @@ const emit = defineEmits<{
 
 const rows = ref<ReceiptItemRow[]>([]);
 const uiRows = ref<UiRow[]>([]);
-const validation = useReceiptValidation(rows)
+watchEffect(() => {
+    rows.value = props.parentRows;
+    uiRows.value = props.parentUiRows;
+});
+
+const validation = useReceiptValidation(rows);
 const loading = ref(false);
 
-const itemFind = (itemId: number | null | undefined, itemName: string | null) => {
-    return itemId ? `Found Item ID: ${itemId} Name: ${itemName}` : "No item found, search for an Item or create a new Item";
-}
-
-async function parse(text: string) {
-    try {
-        const { data } = await api.post(`/receipts/parse`, { text });
-
-        if (!Array.isArray(data)) return;
-
-        rows.value = data.map((row: any, index: number) => ({
-            raw_name: row.name,
-            qty: row.qty,
-            name: row.item_name ?? row.name,
-            item_id: row.item_id ?? null,
-            unit_price: row.unit_price,
-            total_price: row.total_price,
-            position: index + 1,
-        }));
-
-        uiRows.value = data.map((row: any) => ({
-            search: row.name ?? '',
-            suggestions: [],
-            creating: false,
-            newItemName: row.name ?? '',
-            debounce: undefined,
-        }));
-    } catch (e) {
-        console.log(e)
-    }
-}
+const itemFind = (
+    itemId: number | null | undefined,
+    itemName: string | null,
+) => {
+    return itemId
+        ? `Found Item ID: ${itemId} Name: ${itemName}`
+        : 'No item found, search for an Item or create a new Item';
+};
 
 function onSearch(uiRow: UiRow, value: string) {
     uiRow.search = value;
@@ -126,23 +109,21 @@ watch(
         if (!open) {
             rows.value = [];
             uiRows.value = [];
-            validation.errors.value = []
+            validation.errors.value = [];
         }
-
-        await parse(props.text);
     },
 );
 
 watch(
     () => rows.value,
     () => {
-        if (!props.open) return
-        validation.validate()
+        if (!props.open) return;
+        validation.validate();
     },
     {
-        deep: true
-    }
-)
+        deep: true,
+    },
+);
 </script>
 
 <template>
@@ -224,7 +205,6 @@ watch(
                                 @click="uiRows[index].creating = true"
                             >
                                 + Add “{{ uiRows[index].search }}”
-
                             </div>
                         </div>
                         <div>
@@ -234,7 +214,9 @@ watch(
                                 :class="validation.inputClass(index, 'unit')"
                             />
                             <p
-                                v-if="validation.errors.value[index]?.unit_price"
+                                v-if="
+                                    validation.errors.value[index]?.unit_price
+                                "
                                 class="text-xs text-red-500"
                             >
                                 {{ validation.errors.value[index].unit_price }}
@@ -248,7 +230,9 @@ watch(
                                 :class="validation.inputClass(index, 'total')"
                             />
                             <p
-                                v-if="validation.errors.value[index]?.total_price"
+                                v-if="
+                                    validation.errors.value[index]?.total_price
+                                "
                                 class="text-xs text-red-500"
                             >
                                 {{ validation.errors.value[index].total_price }}
@@ -283,7 +267,11 @@ watch(
                     <button
                         type="submit"
                         class="rounded px-4 py-2 text-black"
-                        :class="[validation.disabledSave.value ? 'bg-gray-600' : 'bg-green-600']"
+                        :class="[
+                            validation.disabledSave.value
+                                ? 'bg-gray-600'
+                                : 'bg-green-600',
+                        ]"
                         :disabled="validation.disabledSave.value"
                     >
                         Save receipt

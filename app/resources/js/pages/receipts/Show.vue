@@ -7,12 +7,16 @@ import ReceiptItemsTable from '@/components/ReceiptItemsTable.vue';
 import api from '@/lib/api';
 
 import type { Receipt } from '@/types/receipt';
+import type { ReceiptItemRow } from '@/types/receiptItemRow';
+import type { UiRow } from '@/types/uiRow';
 
 const route = useRoute();
 const receipt = ref<Receipt | null>(null);
 const loading = ref(true);
 const editedText = ref('');
 const showParser = ref(false);
+const rows = ref<ReceiptItemRow[]>([])
+const uiRows = ref<UiRow[]>([])
 
 async function fetchReceipt() {
     loading.value = true;
@@ -26,6 +30,41 @@ async function fetchReceipt() {
         loading.value = false;
     }
 }
+
+async function parse(text: string) {
+    try {
+        const { data } = await api.post(`/receipts/parse`, { text });
+
+        if (!Array.isArray(data)) return;
+
+        rows.value = data.map((row: any, index: number) => ({
+            raw_name: row.name,
+            qty: row.qty,
+            name: row.item_name ?? row.name,
+            item_id: row.item_id ?? null,
+            unit_price: row.unit_price,
+            total_price: row.total_price,
+            position: index + 1,
+        }));
+
+        uiRows.value = data.map((row: any) => ({
+            search: row.name ?? '',
+            suggestions: [],
+            creating: false,
+            newItemName: row.name ?? '',
+            debounce: undefined,
+        }));
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+const openModal = () => {
+    parse(editedText.value)
+
+    showParser.value = true
+}
+
 function copyPrompt() {
     const text = `
 Can you extract from this text only the product data in this format:
@@ -89,7 +128,7 @@ function onItemsSaved() {
 
                 <button
                     class="mt-2 rounded bg-green-600 px-4 py-2 text-white"
-                    @click="showParser = true"
+                    @click="openModal"
                 >
                     Create items
                 </button>
@@ -104,7 +143,8 @@ function onItemsSaved() {
         <ReceiptItemsModal
             :open="showParser"
             :receipt="receipt"
-            :text="editedText"
+            :parent-rows="rows"
+            :parent-ui-rows="uiRows"
             @close="showParser = false"
             @saved="onItemsSaved"
         />
