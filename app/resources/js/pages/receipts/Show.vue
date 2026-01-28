@@ -9,16 +9,11 @@ import api from '@/lib/api';
 import type { Receipt } from '@/types/receipt';
 
 const route = useRoute();
-
 const receipt = ref<Receipt | null>(null);
 const loading = ref(true);
-
 const editedText = ref('');
 const showParser = ref(false);
 
-/* ------------------------------------------
-   Fetch receipt
------------------------------------------- */
 async function fetchReceipt() {
     loading.value = true;
 

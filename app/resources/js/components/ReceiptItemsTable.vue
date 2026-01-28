@@ -37,6 +37,7 @@ const props = defineProps<{
                             <TableHead>QUANTITY</TableHead>
                             <TableHead class="text-right">PRICE</TableHead>
                             <TableHead class="text-right">TOTAL PRICE</TableHead>
+                            <TableHead class="text-right">ACTIONS</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody v-for="item in props.items" :key="item.id">
@@ -46,6 +47,7 @@ const props = defineProps<{
                             <TableCell>{{ item.quantity }}</TableCell>
                             <TableCell class="text-right"> {{ item.unit_price }} </TableCell>
                             <TableCell class="text-right"> {{ item.total_price }} </TableCell>
+                            <TableCell class="text-right"> Actions </TableCell>
                         </TableRow>
                     </TableBody>
                 </Table>
