@@ -77,9 +77,15 @@ const addItemToItems = (item: ReceiptItemRow) => {
 	newUiRow.value = resetUiRow();
 };
 
-async function onSubmit() {
-	// if (validation.validate()) return;
+const removeItem = (item: ReceiptItemRow) => {
+	console.log('removing', item);
+	rows.value = rows.value.filter(
+		(rowItem) => rowItem.item_id != item.item_id
+	);
+	console.log('after remove', rows.value);
+};
 
+async function onSubmit() {
 	loading.value = true;
 
 	try {
@@ -147,6 +153,7 @@ watch(
 						:parent-ui-row="uiRows[index]"
 						mode="edit"
 						@error="(error: RowError) => saveError(index, error)"
+						@remove="(item: ReceiptItemRow) => removeItem(item)"
 					/>
 				</div>
 				<div class="mt-4 flex justify-end gap-2">

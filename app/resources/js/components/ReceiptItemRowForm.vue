@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { Minus, Plus } from 'lucide-vue-next';
 import { computed, ref, watch, watchEffect } from 'vue';
 import { Input } from '@/components/ui/input';
 import api from '@/lib/api';
+import type { Item } from '@/types/item';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
 import type { RowError } from '@/types/rowError';
 import type { UiRow } from '@/types/uiRow';
-import { Item } from '@/types/item';
 
 const props = defineProps<{
 	receipt: Receipt;
@@ -26,6 +27,7 @@ watchEffect(() => {
 const emit = defineEmits<{
 	(e: 'add', value: ReceiptItemRow): void;
 	(e: 'error', value: RowError): void;
+	(e: 'remove', value: ReceiptItemRow): void;
 }>();
 
 const sendError = (error: RowError) => {
@@ -130,6 +132,10 @@ const addItem = () => {
 	emit('add', locRow);
 };
 
+const removeItem = (item: ReceiptItemRow) => {
+	emit('remove', item);
+};
+
 watch([row.value, uiRow.value], () => validate(), {
 	deep: true,
 	immediate: true,
@@ -222,7 +228,18 @@ watch([row.value, uiRow.value], () => validate(), {
 				@click="addItem"
 				:disabled="Object.keys(validationError).length > 0"
 			>
-				Add Item
+				<Plus />
+			</button>
+		</div>
+		<div class="col-span-4 flex items-center justify-end">
+			<button
+				v-if="mode == 'edit'"
+				type="button"
+				class="rounded bg-red-600 p-1 text-sm text-white"
+				@click="removeItem(row)"
+				:disabled="Object.keys(validationError).length > 0"
+			>
+				<Minus />
 			</button>
 		</div>
 	</div>
