@@ -5,6 +5,7 @@
     "trailingComma": "es5",
     "htmlWhitespaceSensitivity": "css",
     "printWidth": 80,
+    "objectWrap": "preserve",
     "plugins": [
         "prettier-plugin-tailwindcss"
     ],

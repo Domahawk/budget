@@ -1,53 +1,141 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { HouseIcon, Store, ListPlus } from 'lucide-vue-next';
+import { Receipt } from 'lucide-vue-next';
+import type { Component } from 'vue';
+import NavbarRouterLink from '@/components/NavbarRouterLink.vue';
+import SidebarMenuLink from '@/components/SidebarMenuLink.vue';
+import SidebarMenuMenu from '@/components/SidebarMenuMenu.vue';
+import {
+	Collapsible,
+	CollapsibleTrigger,
+	CollapsibleContent,
+} from '@/components/ui/collapsible';
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarHeader,
+	SidebarInset,
+	SidebarMenu,
+	SidebarMenuAction,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarProvider,
+	SidebarRail,
+	SidebarTrigger,
+} from '@/components/ui/sidebar';
+import { useCollapsibleMenuStore } from '@/stores/useCollapsibleMenuStore';
+import type { Link } from '@/types/Link';
+
+const collapsibleControl = useCollapsibleMenuStore();
+
+const links: Link[] = [
+	{
+		link_name: 'home',
+		label: 'Home',
+		icon: HouseIcon,
+		component: SidebarMenuLink,
+	},
+	{
+		label: 'Receipt',
+		icon: Receipt,
+		component: SidebarMenuMenu,
+		links: [
+			{
+				link_name: 'receipt_list',
+				label: 'Receipts',
+				icon: Receipt,
+				component: SidebarMenuLink,
+			},
+			{
+				link_name: 'receipt_create',
+				label: 'Create Receipt',
+				icon: ListPlus,
+				component: SidebarMenuLink,
+			},
+		],
+	},
+	{
+		label: 'Store',
+		icon: Store,
+		component: SidebarMenuMenu,
+		links: [
+			{
+				link_name: 'store_list',
+				label: 'Stores',
+				icon: ListPlus,
+				component: SidebarMenuMenu,
+				links: [
+					{
+						link_name: 'store_list',
+						label: 'Sissy',
+						icon: ListPlus,
+						component: SidebarMenuLink,
+						links: [],
+					},
+				],
+			},
+			{
+				link_name: 'store_create',
+				label: 'Create Store',
+				icon: ListPlus,
+				component: SidebarMenuMenu,
+				links: [
+					{
+						link_name: 'store_list',
+						label: 'Sissy',
+						icon: ListPlus,
+						component: SidebarMenuLink,
+						links: [],
+					},
+				],
+			},
+		],
+	},
+];
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col">
-        <!-- Navbar -->
-        <header class="border-b bg-white dark:bg-gray-900">
-            <nav class="mx-auto max-w-7xl px-6 py-4 flex gap-6">
-                <RouterLink
-                    :to="{name: 'home'}"
-                    class="font-medium"
-                    active-class="text-blue-600"
-                >
-                    Home
-                </RouterLink>
-                <RouterLink
-                    :to="{name: 'receipt_list'}"
-                    class="font-medium"
-                    active-class="text-blue-600"
-                >
-                    Receipts
-                </RouterLink>
-                <RouterLink
-                    :to="{name: 'receipt_create'}"
-                    class="font-medium"
-                    active-class="text-blue-600"
-                >
-                    Create a Receipt
-                </RouterLink>
-                <RouterLink
-                    :to="{name: 'store_list'}"
-                    class="font-medium"
-                    active-class="text-blue-600"
-                >
-                    Stores
-                </RouterLink>
-                <RouterLink
-                    :to="{name: 'store_create'}"
-                    class="font-medium"
-                    active-class="text-blue-600"
-                >
-                    Create a Store
-                </RouterLink>
-            </nav>
-        </header>
-
-        <!-- Page content -->
-        <main class="flex-1">
-            <slot />
-        </main>
-    </div>
+	<div class="flex min-h-screen min-w-screen">
+		<SidebarProvider>
+			<Sidebar variant="floating">
+				<SidebarHeader>
+					<SidebarMenu>
+						<SidebarMenuItem>
+							<SidebarMenuButton>
+								<NavbarRouterLink to="home">
+									<h1>Budget Hub</h1>
+								</NavbarRouterLink>
+							</SidebarMenuButton>
+						</SidebarMenuItem>
+					</SidebarMenu>
+				</SidebarHeader>
+				<SidebarContent>
+					<SidebarGroup>
+						<SidebarGroupLabel>Menu</SidebarGroupLabel>
+						<SidebarGroupContent
+							v-for="(item, index) in links"
+							:key="index"
+						>
+							<component
+								:is="item.component"
+								v-bind="{ menu: item }"
+							/>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</SidebarContent>
+				<SidebarFooter>
+					<h2>User things whatever</h2>
+				</SidebarFooter>
+			</Sidebar>
+			<main class="flex-1">
+				<SidebarTrigger />
+				<slot />
+			</main>
+		</SidebarProvider>
+	</div>
 </template>
