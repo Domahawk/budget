@@ -18,7 +18,6 @@ class ReceiptItemController extends Controller
             'items.*.quantity' => ['required', 'numeric'],
             'items.*.unit_price' => ['required', 'numeric'],
             'items.*.total_price' => ['required', 'numeric'],
-            'items.*.position' => ['required', 'integer'],
             'items.*.id' => ['integer'],
         ]);
 
@@ -35,7 +34,6 @@ class ReceiptItemController extends Controller
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
                 'total_price' => $item['total_price'],
-                'position' => $item['position'],
             ]);
 
             if (!isset($item['id'])) {

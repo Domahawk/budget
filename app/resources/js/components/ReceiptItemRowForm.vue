@@ -26,11 +26,11 @@ watchEffect(() => {
 
 const emit = defineEmits<{
 	(e: 'add', value: ReceiptItemRow): void;
-	(e: 'error', value: RowError): void;
+	(e: 'error', value: RowError | undefined): void;
 	(e: 'remove', value: ReceiptItemRow): void;
 }>();
 
-const sendError = (error: RowError) => {
+const sendError = (error: RowError | undefined) => {
 	emit('error', error);
 };
 
@@ -64,8 +64,13 @@ function validate(): void {
 		validationError.value.item = 'Select an item or create a new one';
 	}
 
-	if (Object.keys(validationError.value).length > 0)
+	if (Object.keys(validationError.value).length > 0) {
 		sendError(validationError.value);
+
+		return;
+	}
+
+	sendError(undefined);
 }
 
 const itemFind = computed(() => {
@@ -122,7 +127,6 @@ const addItem = () => {
 	const locRow: ReceiptItemRow = {
 		item_id: row.value.item_id,
 		name: row.value.name,
-		position: 0,
 		qty: row.value.qty,
 		raw_name: row.value.raw_name,
 		total_price: row.value.total_price,

@@ -27,7 +27,6 @@ const resetRow = (): ReceiptItemRow => {
 		item_id: null,
 		unit_price: null,
 		total_price: null,
-		position: 0,
 		id: undefined,
 	};
 };
@@ -56,11 +55,21 @@ watchEffect(() => {
 
 const loading = ref(false);
 
-const saveError = (index: number, error: RowError) => {
+const saveError = (index: number, error: RowError | undefined) => {
+	if (!error) {
+		errors.value.splice(index, 1);
+
+		return;
+	}
+
 	errors.value[index] = error;
 };
 
-const saveSingleError = (error: RowError) => {
+const saveSingleError = (error: RowError | undefined) => {
+	if (!error) {
+		return;
+	}
+
 	singleRowError.value = error;
 };
 
@@ -97,7 +106,6 @@ async function onSubmit() {
 				quantity: r.qty,
 				unit_price: r.unit_price,
 				total_price: r.total_price,
-				position: r.position,
 			})),
 		});
 
@@ -111,6 +119,7 @@ async function onSubmit() {
 watch(
 	() => errors.value,
 	() => {
+		console.log('modal error', errors.value);
 		disabledSave.value = errors.value.length > 0;
 	},
 	{
@@ -136,7 +145,9 @@ watch(
 					:parent-row="newRow"
 					:parent-ui-row="newUiRow"
 					mode="add"
-					@error="(error: RowError) => saveSingleError(error)"
+					@error="
+						(error: RowError | undefined) => saveSingleError(error)
+					"
 					@add="(aItem: ReceiptItemRow) => addItemToItems(aItem)"
 				/>
 			</div>
@@ -152,7 +163,10 @@ watch(
 						:parent-row="row"
 						:parent-ui-row="uiRows[index]"
 						mode="edit"
-						@error="(error: RowError) => saveError(index, error)"
+						@error="
+							(error: RowError | undefined) =>
+								saveError(index, error)
+						"
 						@remove="(item: ReceiptItemRow) => removeItem(item)"
 					/>
 				</div>

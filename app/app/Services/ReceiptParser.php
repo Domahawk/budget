@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Item;
@@ -21,9 +22,6 @@ class ReceiptParser
             ->all();
     }
 
-    /**
-     * Parse a single OCR line using positional schema.
-     */
     private function parseLine(string $line): array
     {
         $tokens = explode(';', $line);
@@ -38,7 +36,7 @@ class ReceiptParser
             'total_price' => (float) str_replace(',', '.', trim($total)),
         ];
 
-        /** @var Item | null $alias*/
+        /** @var Item | null $alias */
         $item = Item::whereHas(
             'aliases',
             fn($query) => $query->where('alias', 'like', "%{$result['name']}%")

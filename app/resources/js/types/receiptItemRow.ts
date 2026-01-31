@@ -5,6 +5,5 @@ export interface ReceiptItemRow {
 	unit_price: number | null;
 	total_price: number | null;
 	item_id: number | null;
-	position: number;
 	id?: number;
 }

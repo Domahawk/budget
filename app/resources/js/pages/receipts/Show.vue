@@ -38,14 +38,13 @@ async function fetchReceipt() {
 }
 
 const parseExistingItems = (items: ReceiptItem[]) => {
-	rows.value = items.map((row: ReceiptItem, index: number) => ({
+	rows.value = items.map((row: ReceiptItem) => ({
 		raw_name: row.raw_name,
 		qty: row.quantity,
 		name: row.item.name,
 		item_id: row.item_id,
 		unit_price: row.unit_price,
 		total_price: row.total_price,
-		position: index + 1,
 		id: row.id,
 	}));
 
@@ -77,7 +76,6 @@ async function parse(text: string) {
 			item_id: row.item_id ?? null,
 			unit_price: row.unit_price,
 			total_price: row.total_price,
-			position: index + 1,
 		}));
 
 		uiRows.value = data.map((row: any) => ({

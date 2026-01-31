@@ -14,7 +14,6 @@ class ReceiptItem extends Model
         'quantity',
         'unit_price',
         'total_price',
-        'position',
     ];
 
     public function receipt(): BelongsTo
