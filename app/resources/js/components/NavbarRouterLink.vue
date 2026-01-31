@@ -9,7 +9,7 @@ const props = defineProps<{
 <template>
 	<RouterLink
 		:to="{ name: props.to }"
-		class="m-2 flex items-center justify-baseline font-medium"
+		class="flex items-center justify-baseline font-medium"
 	>
 		<slot></slot>
 	</RouterLink>

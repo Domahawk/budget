@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ReceiptStatus;
 use App\Models\Receipt;
 use App\Models\ReceiptItem;
 use Illuminate\Http\Request;
@@ -60,7 +61,7 @@ class ReceiptItemController extends Controller
 
         $receipt->items()->saveMany($newItems);
         $receipt->update([
-            'status' => 'confirmed',
+            'status' => $receipt->items->count() < 1 ? ReceiptStatus::NEEDS_REVIEW->value : ReceiptStatus::CONFIRMED->value,
         ]);
 
         return response()->json($receipt, 201);

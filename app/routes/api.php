@@ -12,7 +12,7 @@ Route::prefix('receipts')->group(function () {
     Route::get('/{receipt}', [ReceiptController::class, 'show']);
     Route::post('/{receipt}/items', [ReceiptItemController::class, 'store']);
     Route::post('/create', [ReceiptController::class, 'store']);
-    Route::post('/parse', [ReceiptParseController::class, 'parse']);
+    Route::post('/parse/{receipt}', [ReceiptParseController::class, 'parse']);
 });
 
 Route::prefix('items')->group(function () {

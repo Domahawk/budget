@@ -59,8 +59,14 @@ const parseExistingItems = (items: ReceiptItem[]) => {
 };
 
 async function parse(text: string) {
+	if (!receipt.value) {
+		return;
+	}
+
 	try {
-		const { data } = await api.post(`/receipts/parse`, { text });
+		const { data } = await api.post(`/receipts/parse/${receipt.value.id}`, {
+			text,
+		});
 
 		if (!Array.isArray(data)) return;
 
@@ -111,30 +117,24 @@ ${receipt.value?.ocr_text_raw}`;
 		.catch(() => alert('Failed to copy'));
 }
 
-onMounted(fetchReceipt);
-watch(() => route.params.id, fetchReceipt);
-
-/* ------------------------------------------
-   Modal callbacks
------------------------------------------- */
 function onItemsSaved() {
 	showParser.value = false;
 	fetchReceipt();
 }
+
+onMounted(fetchReceipt);
+watch(() => route.params.id, fetchReceipt);
 </script>
 
 <template>
 	<div
 		v-if="loading || !receipt"
-		class="flex min-w-full items-center justify-center py-10 text-sm text-gray-500"
+		class="flex min-w-full items-center justify-center text-sm text-gray-500"
 	>
 		Loading receipt…
 	</div>
 
-	<div
-		v-else
-		class="flex min-w-full flex-col items-center justify-center py-10"
-	>
+	<div v-else class="flex flex-col items-center justify-center">
 		<div class="mb-6 max-w-fit rounded border p-4">
 			<p class="font-medium">Status: {{ receipt.status }}</p>
 		</div>
@@ -149,30 +149,44 @@ function onItemsSaved() {
 				{{ mode == 'edit' ? 'Edit items' : 'Create items' }}
 			</button>
 		</div>
-		<div class="flex min-w-[60%] flex-row-reverse justify-between">
-			<div
-				v-if="receipt.status === 'needs_review'"
-				class="flex min-h-fit flex-col items-center space-y-2"
-			>
-				<label class="block font-semibold"> OCR text (editable) </label>
-				<button
-					@click="copyPrompt"
-					class="space-y-2 rounded border bg-pink-600 p-4 px-3 py-1 text-sm text-white"
-				>
-					Copy AI ready text
-				</button>
-				<textarea
-					v-model="editedText"
-					rows="12"
-					class="min-h-fit min-w-2xl rounded border p-2 text-sm"
-				/>
+		<div class="w-full">
+			<div class="flex flex-col p-10">
+				<div class="grid grid-cols-3 items-center justify-items-center">
+					<label class="block font-semibold">
+						OCR text (editable)
+					</label>
+					<button
+						@click="copyPrompt"
+						class="mb-3 w-fit rounded border bg-pink-600 p-4 px-3 py-1 text-sm text-white"
+					>
+						Copy AI ready text
+					</button>
+					<label class="block font-semibold">
+						OCR text (original)
+					</label>
+				</div>
+				<div class="grid grid-cols-3 place-content-evenly">
+					<textarea
+						v-model="editedText"
+						rows="12"
+						class="row-span-1 mx-2 no-scrollbar min-h-fit rounded border p-2 text-sm"
+					/>
+					<div class="flex w-full items-center justify-center">
+						<img
+							:src="`/storage/${receipt.image_path}`"
+							class="rounded border"
+							alt=""
+						/>
+					</div>
+					<textarea
+						v-model="receipt.ocr_text_raw"
+						:disabled="true"
+						rows="12"
+						class="row-span-1 mx-2 no-scrollbar min-h-fit rounded border p-2 text-sm"
+					/>
+				</div>
 			</div>
-			<img
-				:src="`/storage/${receipt.image_path}`"
-				class="mb-6 max-w-100 rounded border"
-			/>
 		</div>
-
 		<!-- Modal owns ALL parsing + saving logic -->
 		<ReceiptItemsModal
 			:open="showParser"

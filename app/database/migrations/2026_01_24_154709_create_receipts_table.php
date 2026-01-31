@@ -1,11 +1,11 @@
 <?php
 
+use App\Enums\ReceiptStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
             $table->string('image_path');
-            $table->string('status')->default('uploaded');
+            $table->string('status')->default(ReceiptStatus::UPLOADED);
             $table->longText('ocr_text_raw')->nullable();
             $table->longText('ocr_text_edited')->nullable();
             $table->decimal('parsed_total', 10, 2)->nullable();

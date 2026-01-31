@@ -1,15 +1,10 @@
 <script setup lang="ts">
 import { HouseIcon, Store, ListPlus } from 'lucide-vue-next';
 import { Receipt } from 'lucide-vue-next';
-import type { Component } from 'vue';
 import NavbarRouterLink from '@/components/NavbarRouterLink.vue';
 import SidebarMenuLink from '@/components/SidebarMenuLink.vue';
 import SidebarMenuMenu from '@/components/SidebarMenuMenu.vue';
-import {
-	Collapsible,
-	CollapsibleTrigger,
-	CollapsibleContent,
-} from '@/components/ui/collapsible';
+
 import {
 	Sidebar,
 	SidebarContent,
@@ -28,10 +23,7 @@ import {
 	SidebarRail,
 	SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { useCollapsibleMenuStore } from '@/stores/useCollapsibleMenuStore';
 import type { Link } from '@/types/Link';
-
-const collapsibleControl = useCollapsibleMenuStore();
 
 const links: Link[] = [
 	{
@@ -100,7 +92,7 @@ const links: Link[] = [
 </script>
 
 <template>
-	<div class="flex min-h-screen min-w-screen">
+	<div class="flex min-h-screen w-full">
 		<SidebarProvider>
 			<Sidebar variant="floating">
 				<SidebarHeader>
