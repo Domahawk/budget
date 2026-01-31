@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { HouseIcon, Store, ListPlus } from 'lucide-vue-next';
+import { HouseIcon, Store, List, Plus } from 'lucide-vue-next';
 import { Receipt } from 'lucide-vue-next';
 import NavbarRouterLink from '@/components/NavbarRouterLink.vue';
 import SidebarMenuLink from '@/components/SidebarMenuLink.vue';
@@ -40,13 +40,13 @@ const links: Link[] = [
 			{
 				link_name: 'receipt_list',
 				label: 'Receipts',
-				icon: Receipt,
+				icon: List,
 				component: SidebarMenuLink,
 			},
 			{
 				link_name: 'receipt_create',
 				label: 'Create Receipt',
-				icon: ListPlus,
+				icon: Plus,
 				component: SidebarMenuLink,
 			},
 		],
@@ -59,32 +59,14 @@ const links: Link[] = [
 			{
 				link_name: 'store_list',
 				label: 'Stores',
-				icon: ListPlus,
-				component: SidebarMenuMenu,
-				links: [
-					{
-						link_name: 'store_list',
-						label: 'Sissy',
-						icon: ListPlus,
-						component: SidebarMenuLink,
-						links: [],
-					},
-				],
+				icon: List,
+				component: SidebarMenuLink,
 			},
 			{
 				link_name: 'store_create',
 				label: 'Create Store',
-				icon: ListPlus,
-				component: SidebarMenuMenu,
-				links: [
-					{
-						link_name: 'store_list',
-						label: 'Sissy',
-						icon: ListPlus,
-						component: SidebarMenuLink,
-						links: [],
-					},
-				],
+				icon: Plus,
+				component: SidebarMenuLink,
 			},
 		],
 	},

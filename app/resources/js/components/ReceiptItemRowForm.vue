@@ -7,22 +7,24 @@ import type { Item } from '@/types/item';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
 import type { RowError } from '@/types/rowError';
-import type { UiRow } from '@/types/uiRow';
 
 const props = defineProps<{
 	receipt: Receipt;
 	parentRow: ReceiptItemRow;
-	parentUiRow: UiRow;
+	revalidateToggle?: any;
 	mode: 'add' | 'edit';
 }>();
 
 const row = ref<ReceiptItemRow>(<ReceiptItemRow>{});
-const uiRow = ref<UiRow>(<UiRow>{});
 const validationError = ref<RowError>({});
 watchEffect(() => {
-	row.value = props.parentRow;
-	uiRow.value = props.parentUiRow;
+	return (row.value = props.parentRow);
 });
+const search = ref(row.value.raw_name);
+const suggestions = ref<Item[]>([]);
+const debounce = ref<number | undefined>();
+const creating = ref(false);
+const newItemName = ref(search.value);
 
 const emit = defineEmits<{
 	(e: 'add', value: ReceiptItemRow): void;
@@ -80,20 +82,20 @@ const itemFind = computed(() => {
 });
 
 function onSearch(value: string) {
-	uiRow.value.search = value;
+	search.value = value;
 
-	if (uiRow.value.debounce) {
-		clearTimeout(uiRow.value.debounce);
+	if (debounce.value) {
+		clearTimeout(debounce.value);
 	}
 
 	if (!value) {
-		uiRow.value.suggestions = [];
+		suggestions.value = [];
 		return;
 	}
 
-	uiRow.value.debounce = window.setTimeout(async () => {
+	debounce.value = window.setTimeout(async () => {
 		const res = await api.get(`/items?search=${encodeURIComponent(value)}`);
-		uiRow.value.suggestions = res.data;
+		suggestions.value = res.data;
 	}, 300);
 }
 
@@ -103,24 +105,24 @@ function selectItem(item: Item) {
 	row.value.raw_name = !row.value.raw_name
 		? item.aliases[0].alias
 		: row.value.raw_name;
-	uiRow.value.search = item.name;
-	uiRow.value.suggestions = [];
-	uiRow.value.creating = false;
+	search.value = item.name;
+	suggestions.value = [];
+	creating.value = false;
 }
 
 async function createItem() {
-	if (!uiRow.value.newItemName) return;
+	if (!newItemName.value) return;
 
 	const { data: item } = await api.post('/items/create', {
-		name: uiRow.value.newItemName,
+		name: newItemName.value,
 		raw_name: row.value.raw_name,
 	});
 
 	row.value.name = item.name;
 	row.value.item_id = item.id;
-	uiRow.value.newItemName = '';
-	uiRow.value.creating = false;
-	uiRow.value.suggestions = [];
+	newItemName.value = '';
+	creating.value = false;
+	suggestions.value = [];
 }
 
 const addItem = () => {
@@ -140,10 +142,24 @@ const removeItem = (item: ReceiptItemRow) => {
 	emit('remove', item);
 };
 
-watch([row.value, uiRow.value], () => validate(), {
-	deep: true,
-	immediate: true,
-});
+watch(
+	() => [row.value, search.value, props.revalidateToggle],
+	() => {
+		validate();
+	},
+	{
+		deep: true,
+		immediate: true,
+	}
+);
+
+watch(
+	() => row.value.raw_name,
+	() => {
+		search.value = row.value.raw_name;
+		newItemName.value = search.value;
+	}
+);
 </script>
 
 <template>
@@ -165,18 +181,18 @@ watch([row.value, uiRow.value], () => validate(), {
 
 		<div class="relative">
 			<Input
-				:model-value="uiRow.search"
+				:model-value="search"
 				@input="(e) => onSearch((e.target as HTMLInputElement).value)"
 				placeholder="Search item…"
 				:class="validationError?.item ? 'border-red-500' : ''"
 			/>
 
 			<div
-				v-if="uiRow?.suggestions.length"
+				v-if="suggestions.length"
 				class="absolute z-10 w-full rounded border bg-black"
 			>
 				<div
-					v-for="item in uiRow.suggestions"
+					v-for="item in suggestions"
 					:key="item.id"
 					class="cursor-pointer px-2 py-1 hover:bg-gray-100"
 					@click="selectItem(item)"
@@ -192,9 +208,9 @@ watch([row.value, uiRow.value], () => validate(), {
 			<div
 				v-if="!row.item_id && mode == 'edit'"
 				class="cursor-pointer px-2 py-1 text-sm text-blue-500"
-				@click="uiRow.creating = true"
+				@click="creating = true"
 			>
-				+ Add “{{ uiRow.search }}”
+				+ Add “{{ search }}”
 			</div>
 		</div>
 		<div>
@@ -241,15 +257,14 @@ watch([row.value, uiRow.value], () => validate(), {
 				type="button"
 				class="rounded bg-red-600 p-1 text-sm text-white"
 				@click="removeItem(row)"
-				:disabled="Object.keys(validationError).length > 0"
 			>
 				<Minus />
 			</button>
 		</div>
 	</div>
 
-	<div v-if="uiRow?.creating" class="mt-2 flex gap-2">
-		<Input v-model="uiRow.newItemName" placeholder="New item name" />
+	<div v-if="creating" class="mt-2 flex gap-2">
+		<Input v-model="newItemName" placeholder="New item name" />
 		<button
 			type="button"
 			class="rounded bg-green-600 px-3 text-sm text-white"

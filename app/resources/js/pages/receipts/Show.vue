@@ -9,7 +9,6 @@ import api from '@/lib/api';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItem } from '@/types/receiptItem';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
-import type { UiRow } from '@/types/uiRow';
 
 const route = useRoute();
 const receipt = ref<Receipt | null>(null);
@@ -17,7 +16,6 @@ const loading = ref(true);
 const editedText = ref('');
 const showParser = ref(false);
 const rows = ref<ReceiptItemRow[]>([]);
-const uiRows = ref<UiRow[]>([]);
 const mode = ref<string>('edit');
 
 async function fetchReceipt() {
@@ -47,14 +45,6 @@ const parseExistingItems = (items: ReceiptItem[]) => {
 		total_price: row.total_price,
 		id: row.id,
 	}));
-
-	uiRows.value = items.map((row: ReceiptItem) => ({
-		search: row.raw_name,
-		suggestions: [],
-		creating: false,
-		newItemName: row.raw_name,
-		debounce: undefined,
-	}));
 };
 
 async function parse(text: string) {
@@ -76,14 +66,6 @@ async function parse(text: string) {
 			item_id: row.item_id ?? null,
 			unit_price: row.unit_price,
 			total_price: row.total_price,
-		}));
-
-		uiRows.value = data.map((row: any) => ({
-			search: row.name ?? '',
-			suggestions: [],
-			creating: false,
-			newItemName: row.name ?? '',
-			debounce: undefined,
 		}));
 	} catch (e) {
 		console.log(e);
@@ -190,7 +172,6 @@ watch(() => route.params.id, fetchReceipt);
 			:open="showParser"
 			:receipt="receipt"
 			:parent-rows="rows"
-			:parent-ui-rows="uiRows"
 			@close="showParser = false"
 			@saved="onItemsSaved"
 		/>

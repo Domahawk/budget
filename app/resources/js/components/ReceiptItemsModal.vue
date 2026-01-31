@@ -5,13 +5,11 @@ import api from '@/lib/api';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
 import type { RowError } from '@/types/rowError';
-import type { UiRow } from '@/types/uiRow';
 
 const props = defineProps<{
 	receipt: Receipt;
 	open: boolean;
 	parentRows: ReceiptItemRow[];
-	parentUiRows: UiRow[];
 }>();
 
 const emit = defineEmits<{
@@ -31,38 +29,35 @@ const resetRow = (): ReceiptItemRow => {
 	};
 };
 
-const resetUiRow = (): UiRow => {
-	return {
-		search: '',
-		suggestions: [],
-		creating: false,
-		newItemName: '',
-		debounce: undefined,
-	};
-};
-
 const newRow = ref<ReceiptItemRow>(resetRow());
-const newUiRow = ref<UiRow>(resetUiRow());
 const rows = ref<ReceiptItemRow[]>([]);
-const uiRows = ref<UiRow[]>([]);
-const errors = ref<RowError[]>([]);
+const errors = ref<
+	{
+		error: RowError;
+		formIndex: number;
+	}[]
+>([]);
 const singleRowError = ref<RowError>({});
 const disabledSave = ref<boolean>(false);
 watchEffect(() => {
 	rows.value = props.parentRows;
-	uiRows.value = props.parentUiRows;
 });
 
 const loading = ref(false);
 
 const saveError = (index: number, error: RowError | undefined) => {
 	if (!error) {
-		errors.value.splice(index, 1);
+		errors.value = errors.value.filter(
+			(errorItem) => errorItem.formIndex != index
+		);
 
 		return;
 	}
 
-	errors.value[index] = error;
+	errors.value.push({
+		error: error,
+		formIndex: index,
+	});
 };
 
 const saveSingleError = (error: RowError | undefined) => {
@@ -75,23 +70,19 @@ const saveSingleError = (error: RowError | undefined) => {
 
 const addItemToItems = (item: ReceiptItemRow) => {
 	rows.value.unshift(item);
-	uiRows.value.unshift({
-		creating: false,
-		newItemName: '',
-		search: item.name ?? '',
-		suggestions: [],
-	});
 
 	newRow.value = resetRow();
-	newUiRow.value = resetUiRow();
 };
 
 const removeItem = (item: ReceiptItemRow) => {
-	console.log('removing', item);
+	const itemId = item.item_id ?? item.raw_name;
 	rows.value = rows.value.filter(
-		(rowItem) => rowItem.item_id != item.item_id
+		(rowItem) => rowItem.item_id != itemId && rowItem.raw_name != itemId
 	);
-	console.log('after remove', rows.value);
+	// removing items causes indexes of items to change
+	// need to reindex errors via revalidate-toggle
+	// revalidation adds errors and new correct indexes
+	errors.value = [];
 };
 
 async function onSubmit() {
@@ -119,7 +110,6 @@ async function onSubmit() {
 watch(
 	() => errors.value,
 	() => {
-		console.log('modal error', errors.value);
 		disabledSave.value = errors.value.length > 0;
 	},
 	{
@@ -143,7 +133,6 @@ watch(
 				<ReceiptItemRowForm
 					:receipt="receipt"
 					:parent-row="newRow"
-					:parent-ui-row="newUiRow"
 					mode="add"
 					@error="
 						(error: RowError | undefined) => saveSingleError(error)
@@ -161,7 +150,7 @@ watch(
 					<ReceiptItemRowForm
 						:receipt="receipt"
 						:parent-row="row"
-						:parent-ui-row="uiRows[index]"
+						:revalidate-toggle="rows.length"
 						mode="edit"
 						@error="
 							(error: RowError | undefined) =>
