@@ -23,6 +23,7 @@ import {
 	SidebarRail,
 	SidebarTrigger,
 } from '@/components/ui/sidebar';
+import Sonner from '@/components/ui/sonner/Sonner.vue';
 import type { Link } from '@/types/Link';
 
 const links: Link[] = [
@@ -74,7 +75,7 @@ const links: Link[] = [
 </script>
 
 <template>
-	<div class="flex min-h-screen w-full">
+	<div class="flex min-h-screen w-full flex-col items-center justify-center">
 		<SidebarProvider>
 			<Sidebar variant="floating">
 				<SidebarHeader>
@@ -111,5 +112,6 @@ const links: Link[] = [
 				<slot />
 			</main>
 		</SidebarProvider>
+		<Sonner position="top-center" rich-colors theme="dark" />
 	</div>
 </template>

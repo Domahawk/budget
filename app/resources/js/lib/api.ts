@@ -1,11 +1,25 @@
-import axios from 'axios'
+import axios from 'axios';
+import { useErrorStore } from '@/stores/useErrorStore';
 
 const api = axios.create({
-    baseURL: '/api',
-    headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-    },
-    withCredentials: true, // important for Sanctum later
-})
+	baseURL: '/api',
+	withCredentials: true,
+	headers: {
+		'X-Requested-With': 'XMLHttpRequest',
+		Accept: 'application/json',
+	},
+});
 
-export default api
+// Global response interceptor
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		const errorStore = useErrorStore();
+
+		errorStore.capture(error);
+
+		return Promise.reject(error);
+	}
+);
+
+export default api;

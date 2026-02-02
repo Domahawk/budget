@@ -25,3 +25,7 @@ Route::prefix('stores')->group(function () {
     Route::post('/create', [StoreController::class, 'store']);
     Route::delete('/{store}', [StoreController::class, 'destroy']);
 });
+
+Route::get('/error', function () {
+    return response()->json(['message' => 'This is error'], 401);
+});
