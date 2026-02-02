@@ -44,7 +44,6 @@ services:
       DB_USERNAME: app
       DB_PASSWORD: secret
       QUEUE_CONNECTION: database
-      OLLAMA_URL: http://ollama:11434
     depends_on:
       - db
     command: php artisan queue:work --tries=3 --timeout=120
