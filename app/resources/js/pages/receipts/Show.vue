@@ -9,6 +9,7 @@ import api from '@/lib/api';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItem } from '@/types/receiptItem';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
+import { useToastStore } from '@/stores/useToastStore';
 
 const route = useRoute();
 const receipt = ref<Receipt | null>(null);
@@ -46,7 +47,7 @@ const parseExistingItems = (items: ReceiptItem[]) => {
 		id: row.id,
 	}));
 };
-
+const toastStore = useToastStore();
 async function parse(text: string) {
 	if (!receipt.value) {
 		return;
@@ -57,9 +58,16 @@ async function parse(text: string) {
 			text,
 		});
 
-		if (!Array.isArray(data)) return;
+		console.log(data);
 
-		rows.value = data.map((row: any, index: number) => ({
+		if (!Array.isArray(data)) {
+			toastStore.warning('Data has been parsed, but there are no items');
+			return;
+		}
+
+		toastStore.success('Data parsed successfully');
+
+		rows.value = data.map((row: any) => ({
 			raw_name: row.name,
 			qty: row.qty,
 			name: row.item_name ?? row.name,
@@ -72,12 +80,12 @@ async function parse(text: string) {
 	}
 }
 
-const openModal = () => {
+const openModal = async () => {
 	if (mode.value == 'edit') {
 		// pass receipt items to be parsed for modal
 	} else {
 		// parse text data for modal
-		parse(editedText.value);
+		await parse(editedText.value);
 	}
 
 	showParser.value = true;

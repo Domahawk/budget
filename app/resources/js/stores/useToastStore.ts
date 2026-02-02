@@ -6,7 +6,17 @@ export const useToastStore = defineStore('toast', () => {
 		toast.error(message);
 	};
 
+	const warning = (message: string) => {
+		toast.warning(message);
+	};
+
+	const success = (message: string) => {
+		toast.success(message);
+	};
+
 	return {
+		success,
+		warning,
 		error,
 	};
 });
