@@ -6,10 +6,10 @@ import ReceiptItemsModal from '@/components/ReceiptItemsModal.vue';
 import ReceiptItemsTable from '@/components/ReceiptItemsTable.vue';
 import api from '@/lib/api';
 
+import { useToastStore } from '@/stores/useToastStore';
 import type { Receipt } from '@/types/receipt';
 import type { ReceiptItem } from '@/types/receiptItem';
 import type { ReceiptItemRow } from '@/types/receiptItemRow';
-import { useToastStore } from '@/stores/useToastStore';
 
 const route = useRoute();
 const receipt = ref<Receipt | null>(null);
@@ -17,11 +17,11 @@ const loading = ref(true);
 const editedText = ref('');
 const showParser = ref(false);
 const rows = ref<ReceiptItemRow[]>([]);
+const toastStore = useToastStore();
 const mode = ref<string>('edit');
 
 async function fetchReceipt() {
 	loading.value = true;
-
 	try {
 		const { data } = await api.get<Receipt>(`/receipts/${route.params.id}`);
 
@@ -35,7 +35,6 @@ async function fetchReceipt() {
 		loading.value = false;
 	}
 }
-
 const parseExistingItems = (items: ReceiptItem[]) => {
 	rows.value = items.map((row: ReceiptItem) => ({
 		raw_name: row.raw_name,
@@ -47,7 +46,6 @@ const parseExistingItems = (items: ReceiptItem[]) => {
 		id: row.id,
 	}));
 };
-const toastStore = useToastStore();
 async function parse(text: string) {
 	if (!receipt.value) {
 		return;
@@ -57,8 +55,6 @@ async function parse(text: string) {
 		const { data } = await api.post(`/receipts/parse/${receipt.value.id}`, {
 			text,
 		});
-
-		console.log(data);
 
 		if (!Array.isArray(data)) {
 			toastStore.warning('Data has been parsed, but there are no items');
@@ -175,7 +171,6 @@ watch(() => route.params.id, fetchReceipt);
 				</div>
 			</div>
 		</div>
-		<!-- Modal owns ALL parsing + saving logic -->
 		<ReceiptItemsModal
 			:open="showParser"
 			:receipt="receipt"

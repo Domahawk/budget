@@ -75,9 +75,9 @@ const addItemToItems = (item: ReceiptItemRow) => {
 };
 
 const removeItem = (item: ReceiptItemRow) => {
-	const itemId = item.item_id ?? item.raw_name;
+	const itemId = item.id ?? item.raw_name;
 	rows.value = rows.value.filter(
-		(rowItem) => rowItem.item_id != itemId && rowItem.raw_name != itemId
+		(rowItem) => rowItem.id != itemId && rowItem.raw_name != itemId
 	);
 	// removing items causes indexes of items to change
 	// need to reindex errors via revalidate-toggle

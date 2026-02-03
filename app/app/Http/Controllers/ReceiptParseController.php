@@ -19,6 +19,6 @@ class ReceiptParseController extends Controller
 
         $parsed = $parser->parse($data['text']);
 
-        return response()->json(['parsed' => $parsed]);
+        return response()->json($parsed);
     }
 }

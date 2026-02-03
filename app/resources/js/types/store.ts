@@ -1,5 +1,5 @@
 export interface Store {
-    id: number
-    name: string
-    receipt_count: number
+	id: number;
+	name: string;
+	receipts_count: number;
 }
