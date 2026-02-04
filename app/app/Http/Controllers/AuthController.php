@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Group;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +46,13 @@ class AuthController extends Controller
         ]);
 
         $user->save();
+
+        $group = Group::create([
+            'name' => $user->username,
+            'type' => 'personal',
+        ]);
+
+        $group->users()->attach($user->id, ['role' => 'owner']);
 
         return response()->json(['message' => 'Registration successful']);
     }

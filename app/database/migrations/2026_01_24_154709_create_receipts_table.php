@@ -19,6 +19,12 @@ return new class extends Migration {
             $table->longText('ocr_text_edited')->nullable();
             $table->decimal('parsed_total', 10, 2)->nullable();
             $table->decimal('confirmed_total', 10, 2)->nullable();
+            $table->foreignId('group_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('created_by')
+                ->constrained('users')
+                ->cascadeOnDelete();
             $table->foreignId('store_id')
                 ->constrained()
                 ->cascadeOnDelete();

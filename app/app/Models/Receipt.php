@@ -27,4 +27,14 @@ class Receipt extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
