@@ -2,9 +2,11 @@
 import { HouseIcon, Store, List, Plus } from 'lucide-vue-next';
 import { Receipt } from 'lucide-vue-next';
 import NavbarRouterLink from '@/components/NavbarRouterLink.vue';
+import NavUser from '@/components/NavUser.vue';
 import SidebarMenuLink from '@/components/SidebarMenuLink.vue';
 import SidebarMenuMenu from '@/components/SidebarMenuMenu.vue';
 
+import { Button } from '@/components/ui/button';
 import {
 	Sidebar,
 	SidebarContent,
@@ -13,18 +15,17 @@ import {
 	SidebarGroupContent,
 	SidebarGroupLabel,
 	SidebarHeader,
-	SidebarInset,
 	SidebarMenu,
-	SidebarMenuAction,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarMenuSub,
 	SidebarProvider,
-	SidebarRail,
 	SidebarTrigger,
 } from '@/components/ui/sidebar';
 import Sonner from '@/components/ui/sonner/Sonner.vue';
+import { useAuthStore } from '@/stores/authStore';
 import type { Link } from '@/types/Link';
+
+const authStore = useAuthStore();
 
 const links: Link[] = [
 	{
@@ -77,7 +78,7 @@ const links: Link[] = [
 <template>
 	<div class="flex min-h-screen w-full flex-col items-center justify-center">
 		<SidebarProvider>
-			<Sidebar variant="floating">
+			<Sidebar v-if="authStore.isAuthenticated" variant="floating">
 				<SidebarHeader>
 					<SidebarMenu>
 						<SidebarMenuItem>
@@ -103,8 +104,11 @@ const links: Link[] = [
 						</SidebarGroupContent>
 					</SidebarGroup>
 				</SidebarContent>
-				<SidebarFooter>
-					<h2>User things whatever</h2>
+				<SidebarFooter
+					v-if="authStore.isAuthenticated"
+					class="flex items-center"
+				>
+					<NavUser />
 				</SidebarFooter>
 			</Sidebar>
 			<main class="flex-1">

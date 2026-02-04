@@ -1,10 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import Login from '@/pages/auth/Login.vue';
+import Register from '@/pages/auth/Register.vue';
 import Home from '@/pages/Home.vue';
 import Create from '@/pages/receipts/Create.vue';
 import Index from '@/pages/receipts/Index.vue';
 import Show from '@/pages/receipts/Show.vue';
 import StoreCreate from '@/pages/stores/Create.vue';
 import StoreIndex from '@/pages/stores/Index.vue';
+import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/useToastStore';
 
 const router = createRouter({
@@ -14,31 +17,47 @@ const router = createRouter({
 			path: '/',
 			component: Home,
 			name: 'home',
+			meta: { requiresAuth: true },
 		},
 		{
 			path: '/receipts',
 			component: Index,
 			name: 'receipt_list',
+			meta: { requiresAuth: true },
 		},
 		{
 			path: '/receipts/:id',
 			component: Show,
 			name: 'receipt_show',
+			meta: { requiresAuth: true },
 		},
 		{
 			path: '/receipts/create',
 			component: Create,
 			name: 'receipt_create',
+			meta: { requiresAuth: true },
 		},
 		{
 			path: '/stores/create',
 			component: StoreCreate,
 			name: 'store_create',
+			meta: { requiresAuth: true },
 		},
 		{
 			path: '/stores',
 			component: StoreIndex,
 			name: 'store_list',
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/register',
+			component: Register,
+			name: 'register',
+		},
+		{
+			path: '/login',
+			component: Login,
+			name: 'login',
 		},
 	],
 });
@@ -59,6 +78,18 @@ router.afterEach(() => {
 
 		// IMPORTANT: clear flash so it doesn't reappear
 		history.replaceState({ ...state, flash: null }, document.title);
+	}
+});
+
+router.beforeEach(async (to) => {
+	const auth = useAuthStore();
+
+	if (to.meta.requiresAuth && !auth.isAuthenticated) {
+		await auth.fetchUser();
+
+		if (!auth.isAuthenticated) {
+			return { name: 'login' };
+		}
 	}
 });
 export default router;
