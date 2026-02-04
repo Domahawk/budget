@@ -6,6 +6,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptItemController;
 use App\Http\Controllers\ReceiptParseController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -26,6 +27,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [StoreController::class, 'index']);
         Route::post('/create', [StoreController::class, 'store']);
         Route::delete('/{store}', [StoreController::class, 'destroy']);
+    });
+
+    Route::prefix('users')->group(function () {
+        Route::get('/{user}', [UserController::class, 'show']);
+//        Route::get('/', [StoreController::class, 'index']);
+//        Route::post('/create', [StoreController::class, 'store']);
+//        Route::delete('/{user}', [StoreController::class, 'destroy']);
     });
 
     Route::get('/me', [AuthController::class, 'me']);

@@ -20,7 +20,7 @@ api.interceptors.response.use(
 		if (error.response?.status === 401) {
 			errorStore.capture({
 				message: 'You are not logged in!',
-				status: '401',
+				status: 401,
 			});
 			useAuthStore().forceLogout();
 

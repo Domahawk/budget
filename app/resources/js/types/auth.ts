@@ -1,3 +1,20 @@
+export interface Group {
+	id: string;
+	name: string;
+	budgets: Budget[];
+	user_role: string;
+	type: 'personal' | 'shared';
+}
+
+export interface Budget {
+	id: string;
+	group: Group;
+	name: string;
+	limit: number;
+	starts_at: string;
+	ends_at: string;
+}
+
 export type User = {
 	id: number;
 	username: string;
@@ -6,6 +23,7 @@ export type User = {
 	created_at: string;
 	updated_at: string;
 	[key: string]: unknown;
+	groups: Group[];
 };
 
 export type Auth = {

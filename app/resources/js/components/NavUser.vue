@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronsUpDown } from 'lucide-vue-next';
+import { ref } from 'vue';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,13 +20,19 @@ import UserMenuContent from './UserMenuContent.vue';
 const authStore = useAuthStore();
 const { isMobile, state } = useSidebar();
 const user = authStore.user ?? ({} as User);
+
+const open = ref<boolean>(false);
+
+const toggleOpen = () => {
+	open.value = !open.value;
+};
 </script>
 
 <template>
 	<SidebarMenu>
 		<SidebarMenuItem>
-			<DropdownMenu>
-				<DropdownMenuTrigger as-child>
+			<DropdownMenu v-model:open="open">
+				<DropdownMenuTrigger @click="toggleOpen" as-child>
 					<SidebarMenuButton
 						size="lg"
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -47,7 +54,7 @@ const user = authStore.user ?? ({} as User);
 					align="end"
 					:side-offset="4"
 				>
-					<UserMenuContent :user="user" />
+					<UserMenuContent :user="user" @open="toggleOpen" />
 				</DropdownMenuContent>
 			</DropdownMenu>
 		</SidebarMenuItem>
