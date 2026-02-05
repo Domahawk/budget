@@ -13,11 +13,12 @@ class UserController extends Controller
     {
         $search = $request->query('search');
         $limit = $request->query('limit', 10);
+        $requestUser = $request->user();
 
-        $query = User::query();
+        $query = User::where('id', '!=', $requestUser->id);
 
         if ($search) {
-            $query->where('username', 'like', '%' . $search . '%');
+            $query->where('username', 'like', '%'.$search.'%');
         }
 
         $query->limit($limit);
@@ -26,7 +27,7 @@ class UserController extends Controller
         return response()->json(['users' => $users]);
     }
 
-    public function show(User $user, Request $request)
+    public function show(User $user)
     {
         return response()->json(['user' => new UserResource($user->load('groups.budgets'))]);
     }

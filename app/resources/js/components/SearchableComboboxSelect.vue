@@ -4,7 +4,7 @@ import api from '@/lib/api';
 
 export type Item = {
 	name?: string;
-	username: string;
+	username?: string;
 };
 
 const props = defineProps<{

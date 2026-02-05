@@ -39,6 +39,10 @@ Route::middleware('auth:sanctum')->group(function () {
 //        Route::delete('/{user}', [StoreController::class, 'destroy']);
     });
 
+    Route::prefix('groups')->group(function () {
+        Route::post('/create', [GroupController::class, 'store']);
+    });
+
     Route::get('/me', [AuthController::class, 'me']);
 });
 Route::post('/logout', [AuthController::class, 'logout']);

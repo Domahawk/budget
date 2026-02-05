@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { toTypedSchema } from '@vee-validate/zod';
 import type { AxiosError } from 'axios';
+import { Minus } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
 import { Field as VeeField } from 'vee-validate';
 import { ref } from 'vue';
 import * as z from 'zod';
+import { groupsApi } from '@/api/groupsApi';
 import FormField from '@/components/FormField.vue';
 import SearchableComboboxSelect from '@/components/SearchableComboboxSelect.vue';
 import type { Item as SelectedItem } from '@/components/SearchableComboboxSelect.vue';
@@ -29,6 +31,8 @@ import {
 	SelectValue,
 	SelectContent,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import router from '@/router';
 import { useErrorStore } from '@/stores/useErrorStore';
 import type { User } from '@/types';
 
@@ -43,7 +47,7 @@ const formSchema = z.object({
 	name: z
 		.string()
 		.min(5, 'Needs to be at least 5 characters')
-		.max(100, 'Can be maximium 100 characters'),
+		.max(100, 'Can be maximum 100 characters'),
 	type: z.enum(['personal', 'shared']),
 });
 const { handleSubmit } = useForm({
@@ -55,8 +59,17 @@ const { handleSubmit } = useForm({
 });
 
 const onSubmit = handleSubmit(async (values) => {
+	const payload = {
+		...values,
+		users: users.value.map((user: User) => user.id),
+	};
 	try {
-		console.log(values);
+		const response = await groupsApi.addGroup(payload);
+
+		await router.push({
+			name: 'group_edit',
+			params: { id: response.id },
+		});
 	} catch (error: any) {
 		if (error.status === 422) {
 			errorStore.capture({
@@ -72,10 +85,15 @@ const updateSelectedUser = (item: SelectedItem) => {
 	const foundUsers = users.value.filter((user: User) => {
 		return user.username == item.username;
 	});
-	if (!foundUsers.length > 0) {
+
+	if (foundUsers.length < 1) {
 		users.value.push(item as unknown as User);
 	}
 	selectedUser.value = {} as User;
+};
+
+const removeUser = (id: number) => {
+	users.value = users.value.filter((user: User) => user.id != id);
 };
 </script>
 
@@ -142,19 +160,21 @@ const updateSelectedUser = (item: SelectedItem) => {
 						object-id="users"
 						@update:model-value="updateSelectedUser"
 					/>
+					<Separator />
+					<div
+						v-for="user in users"
+						:key="user.id"
+						class="flex w-full items-center justify-around"
+					>
+						<span>{{ user.username }}</span>
+						<Button
+							@click.prevent="removeUser(user.id)"
+							class="bg-red-600"
+							><Minus
+						/></Button>
+					</div>
 					<Button type="submit">Submit</Button>
 				</form>
-			</CardContent>
-			<CardFooter class="flex flex-col justify-center px-4 text-sm">
-			</CardFooter>
-		</Card>
-		<Card class="flex w-full max-w-md flex-col">
-			<CardHeader class="flex justify-center px-4">
-				<CardTitle>Added Users</CardTitle>
-			</CardHeader>
-
-			<CardContent>
-				<p v-for="user in users" :key="user.id">{{ user.username }}</p>
 			</CardContent>
 			<CardFooter class="flex flex-col justify-center px-4 text-sm">
 			</CardFooter>
