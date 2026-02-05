@@ -16,6 +16,7 @@ class Receipt extends Model
         'parsed_total',
         'confirmed_total',
         'store_id',
+        'group_id',
     ];
 
     public function items(): HasMany

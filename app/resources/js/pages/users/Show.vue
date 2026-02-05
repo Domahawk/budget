@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { usersApi } from '@/api/usersApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import {
 	Table,
 	TableBody,
@@ -55,7 +54,6 @@ onMounted(() => {
 			</CardContent>
 		</Card>
 
-		<!-- Groups -->
 		<Card>
 			<CardHeader>
 				<CardTitle>Groups</CardTitle>
@@ -84,7 +82,6 @@ onMounted(() => {
 			</CardContent>
 		</Card>
 
-		<!--		 Budgets -->
 		<Card>
 			<CardHeader>
 				<CardTitle>Budgets</CardTitle>

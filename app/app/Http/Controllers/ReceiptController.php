@@ -31,6 +31,7 @@ class ReceiptController extends Controller
         $data = $request->validate([
             'image' => ['required', 'image'],
             'store_id' => ['required', 'exists:stores,id'],
+            'group_id' => ['required', 'exists:groups,id'],
         ]);
 
         $path = $data['image']->store('receipts', 'public');
@@ -38,6 +39,7 @@ class ReceiptController extends Controller
         $receipt = Receipt::create([
             'image_path' => $path,
             'store_id' => $data['store_id'],
+            'group_id' => $data['group_id'],
             'status' => 'uploaded',
         ]);
 

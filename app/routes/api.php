@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\GroupController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptItemController;
@@ -31,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('users')->group(function () {
         Route::get('/{user}', [UserController::class, 'show']);
+        Route::get('/{user}/groups', [GroupController::class, 'index']);
 //        Route::get('/', [StoreController::class, 'index']);
 //        Route::post('/create', [StoreController::class, 'store']);
 //        Route::delete('/{user}', [StoreController::class, 'destroy']);

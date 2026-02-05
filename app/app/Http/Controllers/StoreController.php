@@ -3,16 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Store;
-use App\Models\StoreSchema;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class StoreController extends Controller
 {
-    public function index()
+    public function index(Request $request): JsonResponse
     {
+        $search = $request->query('search');
+        $limit = $request->query('limit', 10);
+
+        $stores = Store::where('name', 'like', '%'.$search.'%')->limit($limit)->get();
+
         return response()->json([
-            'stores' => Store::withCount('receipts')->get()
+            'stores' => $stores,
         ]);
     }
 

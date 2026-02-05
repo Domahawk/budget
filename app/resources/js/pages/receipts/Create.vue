@@ -1,145 +1,90 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import SearchableComboboxSelect from '@/components/SearchableComboboxSelect.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
+import type { Group } from '@/types';
 import type { Store } from '@/types/store';
-import { useToastStore } from '@/stores/useToastStore';
 
 const router = useRouter();
-const stores = ref<Store[]>([]);
+const selectedStore = ref<Store>({} as Store);
+const selectedGroup = ref<Group>({} as Group);
+const authStore = useAuthStore();
+const groupRoute = computed(() => {
+	return `/users/${authStore.user.id}/groups`;
+});
 const image = ref<File | null>(null);
-const storeId = ref<number | null>(null);
 const loading = ref(false);
-const errors = reactive<{
-	image?: string;
-	store_id?: string;
-}>({});
-const toastStore = useToastStore();
 
 function handleFileChange(e: Event) {
 	const input = e.target as HTMLInputElement;
 	image.value = input.files?.[0] ?? null;
 }
 
-const fetchStores = async () => {
-	try {
-		const res = await api.get('/stores');
-		stores.value = res.data.stores;
-	} catch (e) {
-		console.log(e);
-	}
-};
-
-async function submit() {
-	errors.image = undefined;
-	errors.store_id = undefined;
-
+const onSubmit = async () => {
 	if (!image.value) {
-		errors.image = 'Image is required';
-		toastStore.error(errors.image);
-		return;
-	}
-
-	if (!storeId.value) {
-		errors.store_id = 'Store is required';
-		toastStore.error(errors.store_id);
 		return;
 	}
 
 	const formData = new FormData();
 	formData.append('image', image.value);
-	formData.append('store_id', String(storeId.value));
+	formData.append('store_id', selectedStore.value.id);
+	formData.append('group_id', selectedGroup.value.id);
 
 	loading.value = true;
 
 	try {
-		const { data } = await api.post('/receipts/create', formData, {
-			headers: { 'Content-Type': 'multipart/form-data' },
-		});
-
+		const { data } = await api.post('/receipts/create', formData);
 		await router.push({
 			name: 'receipt_show',
 			params: { id: data.receipt.id },
-			state: {
-				flash: {
-					type: 'success',
-					message: 'Receipt created successfully',
-				},
-			},
 		});
-	} catch (err: any) {
-		if (err.response?.status === 422) {
-			const apiErrors = err.response.data.errors ?? {};
-
-			errors.image = apiErrors.image?.[0];
-			errors.store_id = apiErrors.store_id?.[0];
-		}
+	} catch {
 	} finally {
 		loading.value = false;
 	}
-}
-onMounted(fetchStores);
+};
 </script>
 
 <template>
-	<div class="mx-auto max-w-2xl py-12">
-		<h1 class="mb-4 text-3xl font-bold">Budget Receipt Scanner</h1>
+	<div class="flex justify-center py-12">
+		<Card class="w-full max-w-2xl">
+			<CardHeader>
+				<CardTitle>Upload receipt</CardTitle>
+			</CardHeader>
 
-		<p class="mb-8 text-gray-600">
-			Upload a receipt image to start processing.
-		</p>
-
-		<div class="rounded-lg border p-6">
-			<form @submit.prevent="submit" class="space-y-4">
-				<div>
-					<label class="mb-2 block font-medium"> Store </label>
-
-					<select
-						v-model="storeId"
-						class="block w-full rounded border bg-black p-2"
-					>
-						<option value="" disabled>Select store</option>
-						<option
-							v-for="store in stores"
-							:key="store.id"
-							:value="store.id"
-							class="text-white"
-						>
-							{{ store.name }}
-						</option>
-					</select>
-
-					<p v-if="errors.store_id" class="text-sm text-red-600">
-						{{ errors.store_id }}
-					</p>
-				</div>
-
-				<!-- Image upload -->
-				<div>
-					<label class="mb-2 block font-medium">
-						Upload receipt image
-					</label>
-
-					<input
-						type="file"
-						accept="image/*"
-						class="mb-2 block w-full rounded-2xl border-2 border-amber-600"
-						@change="handleFileChange"
+			<CardContent>
+				<form @submit.prevent="onSubmit" class="space-y-6">
+					<SearchableComboboxSelect
+						label="Store"
+						route="/stores"
+						v-model="selectedStore"
+						objectId="stores"
 					/>
+					<SearchableComboboxSelect
+						label="Group"
+						:route="groupRoute"
+						v-model="selectedGroup"
+						objectId="groups"
+					/>
+					<div class="space-y-2">
+						<label class="text-sm font-medium">Receipt image</label>
+						<input
+							type="file"
+							accept="image/*"
+							class="block w-full rounded-md border p-2"
+							@change="handleFileChange"
+						/>
+					</div>
 
-					<p v-if="errors.image" class="text-sm text-red-600">
-						{{ errors.image }}
-					</p>
-				</div>
-
-				<button
-					type="submit"
-					class="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-					:disabled="loading || !image || !storeId"
-				>
-					{{ loading ? 'Uploading…' : 'Upload' }}
-				</button>
-			</form>
-		</div>
+					<Button type="submit" :disabled="loading">
+						{{ loading ? 'Uploading…' : 'Upload receipt' }}
+					</Button>
+				</form>
+			</CardContent>
+		</Card>
 	</div>
 </template>
