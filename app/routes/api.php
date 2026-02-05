@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::prefix('users')->group(function () {
+        Route::get('/search', [UserController::class, 'search']);
         Route::get('/{user}', [UserController::class, 'show']);
         Route::get('/{user}/groups', [GroupController::class, 'index']);
 //        Route::get('/', [StoreController::class, 'index']);

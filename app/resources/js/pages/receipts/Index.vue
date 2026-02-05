@@ -81,8 +81,8 @@ onMounted(fetchReceipts);
 				<Table v-else>
 					<TableHeader>
 						<TableRow>
-							<TableHead class="w-[70px]">ID</TableHead>
-							<TableHead class="w-[90px]">PREVIEW</TableHead>
+							<TableHead class="w-17.5">ID</TableHead>
+							<TableHead class="w-22.5">PREVIEW</TableHead>
 							<TableHead>DATE</TableHead>
 							<TableHead>STORE</TableHead>
 							<TableHead class="text-right">TOTAL</TableHead>

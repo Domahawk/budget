@@ -15,17 +15,16 @@ return new class extends Migration {
             $table->foreignId('receipt_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
-            $table->foreignId('item_id')
-                ->nullable()
+            $table->foreignId('budget_id')
                 ->constrained()
-                ->nullOnDelete();
-
+                ->cascadeOnDelete();
+            $table->foreignId('item_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->string('raw_name')->nullable();
-
-            $table->decimal('quantity', 11, 5)->nullable();
-            $table->decimal('unit_price', 10, 2)->nullable();
-            $table->decimal('total_price', 10, 2)->nullable();
+            $table->decimal('quantity', 11, 5);
+            $table->decimal('unit_price', 10);
+            $table->decimal('total_price', 10);
 
             $table->timestamps();
         });

@@ -8,6 +8,7 @@ import Show from '@/pages/receipts/Show.vue';
 import StoreCreate from '@/pages/stores/Create.vue';
 import StoreIndex from '@/pages/stores/Index.vue';
 import UsersShow from '@/pages/users/Show.vue';
+import GroupEdit from '@/pages/groups/Edit.vue';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/useToastStore';
 
@@ -54,6 +55,18 @@ const router = createRouter({
 			path: '/users/:id',
 			component: UsersShow,
 			name: 'user_show',
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/groups/create',
+			component: GroupEdit,
+			name: 'group_create',
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/groups/:id',
+			component: GroupEdit,
+			name: 'group_edit',
 			meta: { requiresAuth: true },
 		},
 		{

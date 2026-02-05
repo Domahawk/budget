@@ -1,24 +1,33 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import api from '@/lib/api';
+
+export type Item = {
+	name?: string;
+	username: string;
+};
 
 const props = defineProps<{
 	label: string;
 	route: string;
-	modelValue: object;
+	modelValue: Item;
 	objectId: string;
 }>();
 
 const emit = defineEmits<{
-	(e: 'update:modelValue', value: object): void;
+	(e: 'update:modelValue', value: Item): any;
 }>();
 
 const search = ref('');
-const items = ref<object[]>([]);
+const items = ref<Item[]>([]);
 const open = ref(false);
 let timeout: number | undefined;
 
-/* ---------- api ---------- */
+watchEffect(() => {
+	if (!props.modelValue.name && !props.modelValue.username) {
+		search.value = '';
+	}
+});
 
 async function fetchItems(query: { search?: string; limit?: number }) {
 	const { data } = await api.get(props.route, {
@@ -49,11 +58,9 @@ function onInput(e: Event) {
 	}, 300);
 }
 
-/* ---------- selection ---------- */
-
-function select(item: object) {
+function select(item: Item) {
 	emit('update:modelValue', item);
-	search.value = item.name;
+	search.value = item.name ?? item.username;
 	open.value = false;
 }
 </script>
@@ -82,7 +89,7 @@ function select(item: object) {
 				class="cursor-pointer px-3 py-2 hover:bg-muted"
 				@mousedown="select(item)"
 			>
-				{{ item.name }}
+				{{ item.name ?? item.username }}
 			</li>
 
 			<li
