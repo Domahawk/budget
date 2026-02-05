@@ -8,7 +8,7 @@ export const useErrorStore = defineStore('error', () => {
 		message: string;
 		errors?: Record<string, string[]>;
 	}> = ref(null);
-	const capture = (error: { status: number; message: string }) => {
+	const capture = (error: { status?: number; message: string }) => {
 		lastError.value = {
 			status: error.status ?? 0,
 			message: error.message,

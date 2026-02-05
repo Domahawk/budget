@@ -32,6 +32,7 @@ class ReceiptController extends Controller
             'image' => ['required', 'image'],
             'store_id' => ['required', 'exists:stores,id'],
             'group_id' => ['required', 'exists:groups,id'],
+            'created_by' => ['required', 'exists:users,id'],
         ]);
 
         $path = $data['image']->store('receipts', 'public');
@@ -40,6 +41,7 @@ class ReceiptController extends Controller
             'image_path' => $path,
             'store_id' => $data['store_id'],
             'group_id' => $data['group_id'],
+            'created_by' => $data['created_by'],
             'status' => 'uploaded',
         ]);
 

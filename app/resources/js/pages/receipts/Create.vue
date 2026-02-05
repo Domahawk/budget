@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
+import { useErrorStore } from '@/stores/useErrorStore';
 import type { Group } from '@/types';
 import type { Store } from '@/types/store';
 
@@ -13,6 +14,7 @@ const router = useRouter();
 const selectedStore = ref<Store>({} as Store);
 const selectedGroup = ref<Group>({} as Group);
 const authStore = useAuthStore();
+const errorStore = useErrorStore();
 const groupRoute = computed(() => {
 	return `/users/${authStore.user.id}/groups`;
 });
@@ -29,10 +31,34 @@ const onSubmit = async () => {
 		return;
 	}
 
+	const userId = authStore.user?.id;
+	const error = {
+		message: '',
+	};
+
+	if (!selectedStore.value?.id) {
+		error.message = 'Store ';
+	}
+
+	if (!selectedGroup.value) {
+		error.message = 'Group ';
+	}
+
+	if (!userId) {
+		error.message = 'Your account ';
+	}
+
+	if (error.message) {
+		error.message = 'Something went wrong with ' + error.message;
+		errorStore.capture(error);
+		return;
+	}
+
 	const formData = new FormData();
 	formData.append('image', image.value);
 	formData.append('store_id', selectedStore.value.id);
 	formData.append('group_id', selectedGroup.value.id);
+	formData.append('created_by', userId);
 
 	loading.value = true;
 

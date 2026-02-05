@@ -59,7 +59,7 @@ class ReceiptItemController extends Controller
 
         $receipt->items()->saveMany($newItems);
         $receipt->update([
-            'status' => $receipt->items->count() < 1 ? ReceiptStatus::NEEDS_REVIEW->value : ReceiptStatus::CONFIRMED->value,
+            'status' => $receipt->items()->count() < 1 ? ReceiptStatus::NEEDS_REVIEW->value : ReceiptStatus::CONFIRMED->value,
         ]);
 
         return response()->json($receipt, 201);

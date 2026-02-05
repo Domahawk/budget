@@ -13,10 +13,9 @@ class Receipt extends Model
         'status',
         'ocr_text_raw',
         'ocr_text_edited',
-        'parsed_total',
-        'confirmed_total',
         'store_id',
         'group_id',
+        'created_by',
     ];
 
     public function items(): HasMany
