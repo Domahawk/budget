@@ -4,9 +4,10 @@ import type { AxiosError } from 'axios';
 import { Minus } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
 import { Field as VeeField } from 'vee-validate';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import * as z from 'zod';
-import { CreateGroupPayload, groupsApi } from '@/api/groupsApi';
+import type { CreateGroupPayload } from '@/api/groupsApi';
+import { groupsApi } from '@/api/groupsApi';
 import FormField from '@/components/FormField.vue';
 import SearchableComboboxSelect from '@/components/SearchableComboboxSelect.vue';
 import type { Item as SelectedItem } from '@/components/SearchableComboboxSelect.vue';
@@ -33,11 +34,13 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import router from '@/router';
+import { useAuthStore } from '@/stores/authStore';
 import { useErrorStore } from '@/stores/useErrorStore';
 import type { Group, User } from '@/types';
 
 const editMode = computed(() => router.currentRoute.value.name == 'group_edit');
 const users = ref<User[]>([]);
+const groupOwner = ref<User>({} as User);
 const selectedUser = ref<User>({} as User);
 const errorStore = useErrorStore();
 const types = <{ value: 'personal' | 'shared'; label: string }[]>[
@@ -51,12 +54,17 @@ const formSchema = z.object({
 		.max(100, 'Can be maximum 100 characters'),
 	type: z.enum(['personal', 'shared']),
 });
-const { handleSubmit, setValues, resetForm } = useForm({
+const { handleSubmit, setValues, resetForm, meta, errors, values } = useForm({
 	validationSchema: toTypedSchema(formSchema),
 	initialValues: {
 		name: '',
 		type: types[0].value,
 	},
+});
+
+const canSubmit = computed(() => meta.value.valid);
+const submitButtonClass = computed(() => {
+	return !canSubmit.value ? 'bg-gray-600' : 'bg-green-600';
 });
 
 const onSubmit = handleSubmit(async (values) => {
@@ -111,6 +119,11 @@ const fetchGroup = async () => {
 	const response = await groupsApi.getGroup(
 		router.currentRoute.value.params.id as unknown as number
 	);
+	const ownerUser = useAuthStore().user;
+
+	if (ownerUser) {
+		groupOwner.value = ownerUser;
+	}
 
 	setValues({
 		name: response.name,
@@ -123,14 +136,22 @@ const fetchGroup = async () => {
 watch(
 	() => router.currentRoute.value.name,
 	() => {
+		users.value = [];
+
 		if (editMode.value) {
 			fetchGroup();
 
 			return;
 		}
 
+		const ownerUser = useAuthStore().user;
+
+		if (ownerUser) {
+			groupOwner.value = ownerUser;
+			users.value.push(ownerUser);
+		}
+
 		resetForm();
-		users.value = [];
 	},
 	{ immediate: true }
 );
@@ -199,20 +220,31 @@ watch(
 						object-id="users"
 						@update:model-value="updateSelectedUser"
 					/>
-					<Separator />
 					<div
 						v-for="user in users"
 						:key="user.id"
-						class="flex w-full items-center justify-around"
+						class="flex w-full flex-col items-center justify-center"
 					>
-						<span>{{ user.username }}</span>
-						<Button
-							@click.prevent="removeUser(user.id)"
-							class="bg-red-600"
-							><Minus
-						/></Button>
+						<Separator />
+						<div
+							class="mt-5 flex w-full items-center justify-between"
+						>
+							<span>{{ user.username }}</span>
+							<Button
+								@click.prevent="removeUser(user.id)"
+								class="bg-red-600"
+								v-if="user.id != groupOwner.id"
+								><Minus
+							/></Button>
+							<span v-else>Group Owner</span>
+						</div>
 					</div>
-					<Button type="submit">Submit</Button>
+					<Button
+						type="submit"
+						:disabled="!canSubmit"
+						:class="submitButtonClass"
+						>Submit</Button
+					>
 				</form>
 			</CardContent>
 			<CardFooter class="flex flex-col justify-center px-4 text-sm">

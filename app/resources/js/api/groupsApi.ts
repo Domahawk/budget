@@ -1,11 +1,11 @@
 import { csrf } from '@/api/csrf';
 import api from '@/lib/api';
-import type { Group, User } from '@/types';
+import type { Group } from '@/types';
 
 export type CreateGroupPayload = {
 	name: string;
 	type: 'personal' | 'shared';
-	users?: number[];
+	users: number[];
 };
 
 export const groupsApi = {

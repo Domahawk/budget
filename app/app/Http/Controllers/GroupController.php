@@ -33,8 +33,6 @@ class GroupController extends Controller
             'users.*' => ['exists:users,id'],
         ]);
 
-        $data['users'][] = $request->user()->id;
-
         $group = Group::create([
             'name' => $data['name'],
             'type' => $data['type'],
