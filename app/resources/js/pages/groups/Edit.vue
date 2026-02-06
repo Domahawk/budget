@@ -62,6 +62,10 @@ const { handleSubmit, setValues, resetForm, meta, errors, values } = useForm({
 	},
 });
 
+const isPersonal = computed(() => {
+	return values.type == 'personal';
+});
+
 const canSubmit = computed(() => meta.value.valid);
 const submitButtonClass = computed(() => {
 	return !canSubmit.value ? 'bg-gray-600' : 'bg-green-600';
@@ -214,6 +218,7 @@ watch(
 						</Field>
 					</VeeField>
 					<SearchableComboboxSelect
+						v-if="!isPersonal"
 						label="Users"
 						route="/users/search"
 						v-model="selectedUser"
