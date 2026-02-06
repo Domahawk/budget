@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { HouseIcon, Store, List, Plus } from 'lucide-vue-next';
+import { HouseIcon, Store, List, Plus, GroupIcon } from 'lucide-vue-next';
 import { Receipt } from 'lucide-vue-next';
 import NavbarRouterLink from '@/components/NavbarRouterLink.vue';
 import NavUser from '@/components/NavUser.vue';
 import SidebarMenuLink from '@/components/SidebarMenuLink.vue';
 import SidebarMenuMenu from '@/components/SidebarMenuMenu.vue';
 
-import { Button } from '@/components/ui/button';
 import {
 	Sidebar,
 	SidebarContent,
@@ -67,6 +66,25 @@ const links: Link[] = [
 			{
 				link_name: 'store_create',
 				label: 'Create Store',
+				icon: Plus,
+				component: SidebarMenuLink,
+			},
+		],
+	},
+	{
+		label: 'Group',
+		icon: GroupIcon,
+		component: SidebarMenuMenu,
+		links: [
+			{
+				link_name: 'group_list',
+				label: 'Groups',
+				icon: List,
+				component: SidebarMenuLink,
+			},
+			{
+				link_name: 'group_create',
+				label: 'Create Group',
 				icon: Plus,
 				component: SidebarMenuLink,
 			},

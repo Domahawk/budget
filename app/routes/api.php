@@ -41,6 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('groups')->group(function () {
         Route::post('/create', [GroupController::class, 'store']);
+        Route::post('/{group}/edit', [GroupController::class, 'update']);
+        Route::get('/{group}', [GroupController::class, 'show']);
     });
 
     Route::get('/me', [AuthController::class, 'me']);

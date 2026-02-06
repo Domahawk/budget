@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Login from '@/pages/auth/Login.vue';
 import Register from '@/pages/auth/Register.vue';
+import GroupEdit from '@/pages/groups/Edit.vue';
+import GroupList from '@/pages/groups/List.vue';
 import Home from '@/pages/Home.vue';
 import Create from '@/pages/receipts/Create.vue';
 import Index from '@/pages/receipts/Index.vue';
@@ -8,7 +10,6 @@ import Show from '@/pages/receipts/Show.vue';
 import StoreCreate from '@/pages/stores/Create.vue';
 import StoreIndex from '@/pages/stores/Index.vue';
 import UsersShow from '@/pages/users/Show.vue';
-import GroupEdit from '@/pages/groups/Edit.vue';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/useToastStore';
 
@@ -67,6 +68,12 @@ const router = createRouter({
 			path: '/groups/:id',
 			component: GroupEdit,
 			name: 'group_edit',
+			meta: { requiresAuth: true },
+		},
+		{
+			path: '/groups',
+			component: GroupList,
+			name: 'group_list',
 			meta: { requiresAuth: true },
 		},
 		{

@@ -33,6 +33,8 @@ class GroupController extends Controller
             'users.*' => ['exists:users,id'],
         ]);
 
+        $data['users'][] = $request->user()->id;
+
         $group = Group::create([
             'name' => $data['name'],
             'type' => $data['type'],
@@ -41,5 +43,28 @@ class GroupController extends Controller
         $group->users()->attach($data['users']);
 
         return response()->json(['group' => $group]);
+    }
+
+    public function update(Request $request, Group $group): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string'],
+            'type' => ['required', new GroupType],
+            'users' => ['array'],
+            'users.*' => ['exists:users,id'],
+        ]);
+
+        $group->name = $data['name'];
+        $group->type = $data['type'];
+        $group->save();
+
+        $group->users()->sync($data['users']);
+
+        return response()->json(['group' => $group]);
+    }
+
+    public function show(Group $group): JsonResponse
+    {
+        return response()->json(['group' => $group->load('users')]);
     }
 }

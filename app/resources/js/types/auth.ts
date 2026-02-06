@@ -4,6 +4,7 @@ export interface Group {
 	budgets: Budget[];
 	user_role: string;
 	type: 'personal' | 'shared';
+	users: User[];
 }
 
 export interface Budget {

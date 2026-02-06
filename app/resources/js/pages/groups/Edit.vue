@@ -4,9 +4,9 @@ import type { AxiosError } from 'axios';
 import { Minus } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
 import { Field as VeeField } from 'vee-validate';
-import { ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import * as z from 'zod';
-import { groupsApi } from '@/api/groupsApi';
+import { CreateGroupPayload, groupsApi } from '@/api/groupsApi';
 import FormField from '@/components/FormField.vue';
 import SearchableComboboxSelect from '@/components/SearchableComboboxSelect.vue';
 import type { Item as SelectedItem } from '@/components/SearchableComboboxSelect.vue';
@@ -34,8 +34,9 @@ import {
 import { Separator } from '@/components/ui/separator';
 import router from '@/router';
 import { useErrorStore } from '@/stores/useErrorStore';
-import type { User } from '@/types';
+import type { Group, User } from '@/types';
 
+const editMode = computed(() => router.currentRoute.value.name == 'group_edit');
 const users = ref<User[]>([]);
 const selectedUser = ref<User>({} as User);
 const errorStore = useErrorStore();
@@ -50,7 +51,7 @@ const formSchema = z.object({
 		.max(100, 'Can be maximum 100 characters'),
 	type: z.enum(['personal', 'shared']),
 });
-const { handleSubmit } = useForm({
+const { handleSubmit, setValues, resetForm } = useForm({
 	validationSchema: toTypedSchema(formSchema),
 	initialValues: {
 		name: '',
@@ -64,7 +65,7 @@ const onSubmit = handleSubmit(async (values) => {
 		users: users.value.map((user: User) => user.id),
 	};
 	try {
-		const response = await groupsApi.addGroup(payload);
+		const response = await makeApiRequest(payload);
 
 		await router.push({
 			name: 'group_edit',
@@ -95,6 +96,44 @@ const updateSelectedUser = (item: SelectedItem) => {
 const removeUser = (id: number) => {
 	users.value = users.value.filter((user: User) => user.id != id);
 };
+
+const makeApiRequest = async (payload: CreateGroupPayload): Promise<Group> => {
+	if (editMode.value) {
+		return await groupsApi.updateGroup(
+			payload,
+			router.currentRoute.value.params.id as unknown as number
+		);
+	}
+	return await groupsApi.addGroup(payload);
+};
+
+const fetchGroup = async () => {
+	const response = await groupsApi.getGroup(
+		router.currentRoute.value.params.id as unknown as number
+	);
+
+	setValues({
+		name: response.name,
+		type: response.type,
+	});
+
+	users.value = response.users;
+};
+
+watch(
+	() => router.currentRoute.value.name,
+	() => {
+		if (editMode.value) {
+			fetchGroup();
+
+			return;
+		}
+
+		resetForm();
+		users.value = [];
+	},
+	{ immediate: true }
+);
 </script>
 
 <template>
